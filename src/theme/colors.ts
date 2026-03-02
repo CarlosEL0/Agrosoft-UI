@@ -24,7 +24,6 @@ export const Colors = {
   // Botón primario
   buttonBg: '#3e4c43',
   buttonText: '#f8f8ff',
-  buttonSecundary: '#000000',
 
   // Estado / alertas
   danger: '#d32f2f',
