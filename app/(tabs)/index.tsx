@@ -161,11 +161,11 @@ export default function HomeScreen() {
         <Text style={styles.actionTitle}>Que deseas hacer?</Text>
         <View style={styles.actionsContainer}>
           <View style={styles.actionsRow}>
-            <TouchableOpacity style={styles.actionPill}>
-              <Text style={styles.actionPillText}>Crear cultivo</Text>
+            <TouchableOpacity style={styles.actionPill} onPress={() => router.push('./crear-cultivo')}>
+                <Text style={styles.actionPillText}>Crear cultivo</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.actionPill}>
-              <Text style={styles.actionPillText}>ver cultivos</Text>
+            <TouchableOpacity style={styles.actionPill} onPress={() => router.push('./(tabs)/cultivos')}>
+                <Text style={styles.actionPillText}>ver cultivos</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionPill}>
               <Text style={styles.actionPillText}>Historial</Text>
@@ -205,7 +205,7 @@ export default function HomeScreen() {
           <HomeIcon />
           <Text style={[styles.tabLabel, styles.tabLabelActive]}>Inicio</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
+       <TouchableOpacity style={styles.tabItem} onPress={() => router.push('./(tabs)/cultivos')}>
           <TreeTabIcon />
           <Text style={styles.tabLabel}>Cultivos</Text>
         </TouchableOpacity>
