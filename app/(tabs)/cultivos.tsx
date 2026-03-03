@@ -174,7 +174,7 @@ export default function CultivosScreen() {
         showsVerticalScrollIndicator={false}
       >
         {cultivosFiltrados.map((cultivo) => (
-          <TouchableOpacity key={cultivo.id} style={styles.cultivoCard} activeOpacity={0.85}>
+          <TouchableOpacity key={cultivo.id} style={styles.cultivoCard} onPress={() => router.push('/detalle-cultivo')}>
             <PlantPotIcon size={56} />
             <Text style={styles.cultivoNombre}>{cultivo.nombre}</Text>
             <View style={styles.cultivoFooter}>
