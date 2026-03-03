@@ -20,7 +20,7 @@ export default function RootLayout() {
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="crear-cultivo" />  
       <Stack.Screen name="detalle-cultivo" />
-
+      <Stack.Screen name="historial-cultivo" />
     </Stack>
   );
 }
