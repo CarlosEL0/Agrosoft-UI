@@ -122,6 +122,8 @@ interface FormData {
   cantidadSemillas: string;
   fechaSiembra: string;
   etapas: Etapa[];
+  nombrePersonalizado: string;
+
 }
 
 // ── Paso 1: Tipo de cultivo ───────────────────────────────────────────────────
@@ -160,6 +162,21 @@ function Paso1({
           ))}
         </View>
 
+        {/* Si selecciona "Otro" pide el nombre */}
+        {data.tipoCultivo === 'Otro' && (
+          <View>
+            <Text style={styles.fieldLabel}>Nombre del cultivo</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="Ej: Tomate, Zanahoria..."
+              placeholderTextColor={Colors.textPlaceholder}
+              value={data.nombrePersonalizado}
+              onChangeText={(v) => onChange('nombrePersonalizado', v)}
+              autoFocus
+            />
+          </View>
+        )}
+
         {/* Variedad opcional */}
         <Text style={styles.fieldLabel}>Variedad (Opcional)</Text>
         <TextInput
@@ -172,9 +189,16 @@ function Paso1({
       </View>
 
       <TouchableOpacity
-        style={[styles.continueBtn, !data.tipoCultivo && styles.continueBtnDisabled]}
+        style={[
+          styles.continueBtn,
+          (!data.tipoCultivo || (data.tipoCultivo === 'Otro' && !data.nombrePersonalizado)) &&
+            styles.continueBtnDisabled,
+        ]}
         onPress={onNext}
-        disabled={!data.tipoCultivo}
+        disabled={
+          !data.tipoCultivo ||
+          (data.tipoCultivo === 'Otro' && !data.nombrePersonalizado)
+        }
         activeOpacity={0.85}
       >
         <Text style={styles.continueBtnText}>Continuar &gt;</Text>
@@ -413,6 +437,7 @@ export default function CrearCultivoScreen() {
     cantidadSemillas: '',
     fechaSiembra: '',
     etapas: [],
+    nombrePersonalizado: '',
   });
 
   const titles = ['Crear cultivo', 'Datos del cultivo', 'Etapas del ciclo', 'Confirmar cultivo'];
