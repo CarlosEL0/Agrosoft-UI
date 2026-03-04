@@ -227,7 +227,7 @@ export default function DetalleCultivoScreen() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity style={[styles.accionBtn, styles.accionBtnDark]}>
+          <TouchableOpacity style={[styles.accionBtn, styles.accionBtnDark]}onPress={() => router.push('./historial-cultivo')}>
             <View style={styles.accionBtnContent}>
               <HistoryIcon />
               <Text style={styles.accionBtnTextLight}>Historial</Text>

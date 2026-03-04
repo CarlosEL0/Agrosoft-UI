@@ -167,7 +167,7 @@ export default function HomeScreen() {
             <TouchableOpacity style={styles.actionPill} onPress={() => router.push('./(tabs)/cultivos')}>
                 <Text style={styles.actionPillText}>ver cultivos</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionPill, styles.actionPill]}onPress={() => router.push('./historial-cultivo')}>
+            <TouchableOpacity style={[styles.actionPill, styles.actionPill]}onPress={() => router.push('./historial-general')}>
               <Text style={styles.actionPillText}>Historial</Text>
             </TouchableOpacity>
           </View>
