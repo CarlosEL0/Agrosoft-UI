@@ -22,6 +22,7 @@ export default function RootLayout() {
       <Stack.Screen name="detalle-cultivo" />
       <Stack.Screen name="historial-cultivo" />
       <Stack.Screen name="detalle-reporte" />
+      <Stack.Screen name="historial-general" />
     </Stack>
   );
 }
