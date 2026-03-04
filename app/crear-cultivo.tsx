@@ -1,142 +1,46 @@
 // app/crear-cultivo.tsx
 // Flujo de 4 pasos para crear un cultivo
 
+import { Colors } from '@/src/theme/colors';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Svg, Path, Circle, Rect, G } from 'react-native-svg';
-import { Colors } from '@/src/theme/colors';
+
+// Importaciones extraídas
+import { BackIcon } from '@/src/components/icons/BackIcon';
+import { CalendarIcon } from '@/src/components/icons/CalendarIcon';
+import { CheckIcon } from '@/src/components/icons/CheckIcon';
+import { PlantCircleIcon } from '@/src/components/icons/PlantCircleIcon';
+import { RobotIcon } from '@/src/components/icons/RobotIcon';
+import { StepIndicator } from '@/src/components/ui/StepIndicator';
+import {
+  CultivoFormData,
+  etapasDefault,
+  tiposCultivo
+} from '@/src/utils/formSchemas';
 
 const { width } = Dimensions.get('window');
 
-// ── Íconos ───────────────────────────────────────────────────────────────────
-
-function BackIcon() {
-  return (
-    <Svg width={44} height={44} viewBox="0 0 44 44" fill="none">
-      <Circle cx={22} cy={22} r={22} fill={Colors.buttonSecundary} />
-      <Path d="M25 14l-8 8 8 8" stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function PlantCircleIcon({ size = 64 }: { size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
-      <Circle cx={32} cy={32} r={32} fill={Colors.primary} />
-      <Path d="M32 44V32" stroke="#fff" strokeWidth={2} strokeLinecap="round" />
-      <Path d="M32 38C32 38 24 35 22 27C22 27 30 23 34 31"
-        stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <Path d="M32 33C32 33 38 29 42 33C42 33 40 41 32 39"
-        stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <Rect x={26} y={44} width={12} height={8} rx={2} fill="#fff" opacity={0.9} />
-      <Path d="M24 44h16l-2 6H26l-2-6z" fill="#fff" opacity={0.7} />
-    </Svg>
-  );
-}
-
-function CalendarIcon() {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Rect x={3} y={4} width={18} height={18} rx={2} stroke={Colors.textLight} strokeWidth={1.5} />
-      <Path d="M16 2v4M8 2v4M3 10h18" stroke={Colors.textLight} strokeWidth={1.5} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function RobotIcon() {
-  return (
-    <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
-      <Rect x={3} y={8} width={18} height={13} rx={2} stroke="#fff" strokeWidth={1.5} />
-      <Path d="M12 8V4" stroke="#fff" strokeWidth={1.5} strokeLinecap="round" />
-      <Circle cx={12} cy={3} r={1} fill="#fff" />
-      <Circle cx={8.5} cy={13} r={1.5} fill="#fff" />
-      <Circle cx={15.5} cy={13} r={1.5} fill="#fff" />
-      <Path d="M9 17h6" stroke="#fff" strokeWidth={1.5} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-      <Circle cx={12} cy={12} r={10} fill="#fff" />
-      <Path d="M8 12l3 3 5-5" stroke={Colors.primary} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-// ── Indicador de pasos ────────────────────────────────────────────────────────
-
-function StepIndicator({ current, total = 4 }: { current: number; total?: number }) {
-  return (
-    <View style={styles.stepIndicator}>
-      {Array.from({ length: total }).map((_, i) => {
-        const isCompleted = i < current - 1;
-        const isActive = i === current - 1;
-        return (
-          <React.Fragment key={i}>
-            <View style={[
-              styles.stepDot,
-              isCompleted && styles.stepDotCompleted,
-              isActive && styles.stepDotActive,
-            ]} />
-            {i < total - 1 && (
-              <View style={[
-                styles.stepLine,
-                isCompleted && styles.stepLineCompleted,
-              ]} />
-            )}
-          </React.Fragment>
-        );
-      })}
-    </View>
-  );
-}
-
-// ── Tipos ─────────────────────────────────────────────────────────────────────
-
-interface Etapa {
-  nombre: string;
-  inicio: string;
-  fin: string;
-  dias: number;
-}
-
-interface FormData {
-  tipoCultivo: string;
-  variedad: string;
-  tipoCultivoDetalle: string;
-  tamanoTerreno: string;
-  cantidadSemillas: string;
-  fechaSiembra: string;
-  etapas: Etapa[];
-  nombrePersonalizado: string;
-
-}
-
 // ── Paso 1: Tipo de cultivo ───────────────────────────────────────────────────
-
-const tiposCultivo = ['Maiz', 'Frijol', 'Lechuga', 'Otro'];
 
 function Paso1({
   data,
   onChange,
   onNext,
 }: {
-  data: FormData;
-  onChange: (key: keyof FormData, value: any) => void;
+  data: CultivoFormData;
+  onChange: (key: keyof CultivoFormData, value: any) => void;
   onNext: () => void;
 }) {
   return (
@@ -192,7 +96,7 @@ function Paso1({
         style={[
           styles.continueBtn,
           (!data.tipoCultivo || (data.tipoCultivo === 'Otro' && !data.nombrePersonalizado)) &&
-            styles.continueBtnDisabled,
+          styles.continueBtnDisabled,
         ]}
         onPress={onNext}
         disabled={
@@ -214,8 +118,8 @@ function Paso2({
   onChange,
   onNext,
 }: {
-  data: FormData;
-  onChange: (key: keyof FormData, value: any) => void;
+  data: CultivoFormData;
+  onChange: (key: keyof CultivoFormData, value: any) => void;
   onNext: () => void;
 }) {
   return (
@@ -281,21 +185,11 @@ function Paso2({
 
 // ── Paso 3: Etapas del ciclo ──────────────────────────────────────────────────
 
-const etapasDefault: Etapa[] = [
-  { nombre: 'Germinacion', inicio: '25/06/24', fin: '25/06/24', dias: 10 },
-  { nombre: 'Plántula', inicio: '25/06/24', fin: '25/06/24', dias: 10 },
-  { nombre: 'Crecimiento', inicio: '25/06/24', fin: '25/06/24', dias: 10 },
-  { nombre: 'Floración', inicio: '25/06/24', fin: '25/06/24', dias: 10 },
-  { nombre: 'Cosecha', inicio: '25/06/24', fin: '25/06/24', dias: 10 },
-];
-
 function Paso3({
   data,
-  onChange,
   onNext,
 }: {
-  data: FormData;
-  onChange: (key: keyof FormData, value: any) => void;
+  data: CultivoFormData;
   onNext: () => void;
 }) {
   const etapas = data.etapas.length > 0 ? data.etapas : etapasDefault;
@@ -356,6 +250,7 @@ function Paso3({
     </ScrollView>
   );
 }
+
 // ── Paso 4: Confirmar cultivo ─────────────────────────────────────────────────
 
 function Paso4({
@@ -363,7 +258,7 @@ function Paso4({
   onEdit,
   onCreate,
 }: {
-  data: FormData;
+  data: CultivoFormData;
   onEdit: () => void;
   onCreate: () => void;
 }) {
@@ -429,7 +324,7 @@ function Paso4({
 export default function CrearCultivoScreen() {
   const router = useRouter();
   const [paso, setPaso] = useState(1);
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<CultivoFormData>({
     tipoCultivo: '',
     variedad: '',
     tipoCultivoDetalle: '',
@@ -442,7 +337,7 @@ export default function CrearCultivoScreen() {
 
   const titles = ['Crear cultivo', 'Datos del cultivo', 'Etapas del ciclo', 'Confirmar cultivo'];
 
-  const handleChange = (key: keyof FormData, value: any) => {
+  const handleChange = (key: keyof CultivoFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
   };
 
@@ -475,13 +370,13 @@ export default function CrearCultivoScreen() {
         {/* ── Indicador de pasos ── */}
         <View style={styles.stepRow}>
           <Text style={styles.stepText}>Paso {paso} de 4</Text>
-          <StepIndicator current={paso} />
+          <StepIndicator current={paso} total={4} />
         </View>
 
         {/* ── Contenido por paso ── */}
         {paso === 1 && <Paso1 data={formData} onChange={handleChange} onNext={handleNext} />}
         {paso === 2 && <Paso2 data={formData} onChange={handleChange} onNext={handleNext} />}
-        {paso === 3 && <Paso3 data={formData} onChange={handleChange} onNext={handleNext} />}
+        {paso === 3 && <Paso3 data={formData} onNext={handleNext} />}
         {paso === 4 && <Paso4 data={formData} onEdit={() => setPaso(3)} onCreate={handleCreate} />}
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -523,35 +418,6 @@ const styles = StyleSheet.create({
     fontFamily: 'Rubik_500Medium',
     fontSize: 14,
     color: Colors.textDark,
-  },
-  stepIndicator: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  stepDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: '#d0d8d2',
-  },
-  stepDotActive: {
-    backgroundColor: Colors.primary,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  stepDotCompleted: {
-    backgroundColor: Colors.primary,
-  },
-  stepLine: {
-    flex: 1,
-    height: 2,
-    backgroundColor: '#d0d8d2',
-    marginHorizontal: 2,
-  },
-  stepLineCompleted: {
-    backgroundColor: Colors.primary,
   },
 
   // Paso contenido
@@ -640,8 +506,8 @@ const styles = StyleSheet.create({
 
   // Paso 3 - Etapas
   etapaWrapper: {
-  alignItems: 'center',
-},
+    alignItems: 'center',
+  },
   etapaCard: {
     backgroundColor: '#fff',
     borderRadius: 16,
@@ -734,7 +600,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
   },
-  
+
   etapaActions: {
     flexDirection: 'row',
     gap: 10,
@@ -752,7 +618,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textDark,
   },
-  
+
 
   // Paso 4 - Resumen
   resumenCard: {
