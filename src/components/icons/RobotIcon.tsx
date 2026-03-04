@@ -1,16 +1,16 @@
+import { Colors } from '@/src/theme/colors';
 import React from 'react';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
-import { Colors } from '../../theme/colors';
 
-export function RobotIcon() {
+export function RobotIcon({ color = Colors.textDark }: { color?: string }) {
     return (
-        <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-            <Rect x={4} y={8} width={16} height={12} rx={3} stroke={Colors.primary} strokeWidth={2} />
-            <Path d="M8 8V6a4 4 0 018 0v2M12 4v2" stroke={Colors.primary} strokeWidth={2} strokeLinecap="round" />
-            <Circle cx={9} cy={14} r={1.5} fill={Colors.primary} />
-            <Circle cx={15} cy={14} r={1.5} fill={Colors.primary} />
-            <Path d="M10 18h4" stroke={Colors.primary} strokeWidth={2} strokeLinecap="round" />
-            <Path d="M2 12h2M20 12h2" stroke={Colors.primary} strokeWidth={2} strokeLinecap="round" />
+        <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
+            <Rect x={3} y={8} width={18} height={13} rx={2} stroke={color} strokeWidth={1.5} />
+            <Path d="M12 8V4" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
+            <Circle cx={12} cy={3} r={1} fill={color} />
+            <Circle cx={8.5} cy={13} r={1.5} fill={color} />
+            <Circle cx={15.5} cy={13} r={1.5} fill={color} />
+            <Path d="M9 17h6" stroke={color} strokeWidth={1.5} strokeLinecap="round" />
         </Svg>
     );
 }

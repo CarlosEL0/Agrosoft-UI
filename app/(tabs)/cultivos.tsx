@@ -1,98 +1,33 @@
 // app/(tabs)/cultivos.tsx
 
+import { Colors } from '@/src/theme/colors';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  ScrollView,
-  TouchableOpacity,
-  TextInput,
   Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Svg, Path, Circle, Rect, Ellipse } from 'react-native-svg';
-import { Colors } from '@/src/theme/colors';
+
+// Importaciones extraídas
+import { HomeTabIcon } from '@/src/components/icons/HomeTabIcon';
+import { PlantPotIcon } from '@/src/components/icons/PlantPotIcon';
+import { PlusIcon } from '@/src/components/icons/PlusIcon';
+import { SearchIcon } from '@/src/components/icons/SearchIcon';
+import { TreeIcon } from '@/src/components/icons/TreeIcon';
+import { TreeTabIcon } from '@/src/components/icons/TreeTabIcon';
+import { UserTabIcon } from '@/src/components/icons/UserTabIcon';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 22 * 2 - 12) / 2;
 
-// ── Íconos ───────────────────────────────────────────────────────────────────
-
-function TreeIcon() {
-  return (
-    <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 22v-6" stroke={Colors.primary} strokeWidth={1.8} strokeLinecap="round" />
-      <Path d="M5 16l7-6 7 6H5z" stroke={Colors.primary} strokeWidth={1.8} strokeLinejoin="round" fill="none" />
-      <Path d="M7 10l5-5 5 5H7z" stroke={Colors.primary} strokeWidth={1.8} strokeLinejoin="round" fill="none" />
-    </Svg>
-  );
-}
-
-function SearchIcon() {
-  return (
-    <Svg width={18} height={18} viewBox="0 0 24 24" fill="none">
-      <Circle cx={11} cy={11} r={8} stroke={Colors.textLight} strokeWidth={1.8} />
-      <Path d="M21 21l-4.35-4.35" stroke={Colors.textLight} strokeWidth={1.8} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function PlantPotIcon({ size = 52 }: { size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 56 56" fill="none">
-      <Path d="M16 36h24l-3 10H19L16 36z" fill={Colors.textDark} />
-      <Rect x={14} y={32} width={28} height={6} rx={2} fill={Colors.textDark} />
-      <Path d="M28 32V20" stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" />
-      <Path d="M28 26C28 26 20 24 18 16C18 16 26 12 30 20"
-        stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <Path d="M28 22C28 22 34 18 38 22C38 22 36 30 28 28"
-        stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </Svg>
-  );
-}
-
-function PlusIcon() {
-  return (
-    <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 5v14M5 12h14" stroke="#fff" strokeWidth={2.5} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function HomeTabIcon() {
-  return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"
-        stroke={Colors.textLight} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M9 21V12h6v9"
-        stroke={Colors.textLight} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function TreeTabIcon({ active = false }: { active?: boolean }) {
-  return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 22v-6" stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} strokeLinecap="round" />
-      <Path d="M5 16l7-6 7 6H5z" stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} strokeLinejoin="round" fill="none" />
-      <Path d="M7 10l5-5 5 5H7z" stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} strokeLinejoin="round" fill="none" />
-    </Svg>
-  );
-}
-
-function UserTabIcon() {
-  return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"
-        stroke={Colors.textLight} strokeWidth={1.8} strokeLinecap="round" />
-      <Circle cx={12} cy={7} r={4} stroke={Colors.textLight} strokeWidth={1.8} />
-    </Svg>
-  );
-}
-
 // ── Datos mock ───────────────────────────────────────────────────────────────
+
 
 const cultivosMock = [
   { id: '1', nombre: 'Maiz rojo', dia: 25, estado: 'Activo' },

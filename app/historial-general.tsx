@@ -1,97 +1,35 @@
 // app/historial-general.tsx
 
+import { Colors } from '@/src/theme/colors';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Svg, Path, Circle, Rect } from 'react-native-svg';
-import { Colors } from '@/src/theme/colors';
 
-// ── Íconos ───────────────────────────────────────────────────────────────────
+// Importaciones extraídas
+import { BackIcon } from '@/src/components/icons/BackIcon';
+import { HomeTabIcon } from '@/src/components/icons/HomeTabIcon';
+import { ImageIcon } from '@/src/components/icons/ImageIcon';
+import { PlantCircleIcon } from '@/src/components/icons/PlantCircleIcon';
+import { TreeTabIcon } from '@/src/components/icons/TreeTabIcon';
+import { UserTabIcon } from '@/src/components/icons/UserTabIcon';
 
-function BackIcon() {
-  return (
-    <Svg width={44} height={44} viewBox="0 0 44 44" fill="none">
-      <Circle cx={22} cy={22} r={22} fill={Colors.textDark} />
-      <Path d="M25 14l-8 8 8 8" stroke="#fff" strokeWidth={2.5}
-        strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
 
-function PlantCircleIcon({ size = 50 }: { size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
-      <Circle cx={32} cy={32} r={32} fill={Colors.primary} />
-      <Path d="M32 44V32" stroke="#fff" strokeWidth={2} strokeLinecap="round" />
-      <Path d="M32 38C32 38 24 35 22 27C22 27 30 23 34 31"
-        stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <Path d="M32 33C32 33 38 29 42 33C42 33 40 41 32 39"
-        stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <Rect x={26} y={44} width={12} height={8} rx={2} fill="#fff" opacity={0.9} />
-    </Svg>
-  );
-}
-
-function ImageIcon() {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Rect x={3} y={3} width={18} height={18} rx={2} stroke={Colors.textLight} strokeWidth={1.5} />
-      <Circle cx={8.5} cy={8.5} r={1.5} fill={Colors.textLight} />
-      <Path d="M21 15l-5-5L5 21" stroke={Colors.textLight} strokeWidth={1.5}
-        strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function HomeTabIcon() {
-  return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"
-        stroke={Colors.textLight} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M9 21V12h6v9"
-        stroke={Colors.textLight} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function TreeTabIcon({ active = false }: { active?: boolean }) {
-  return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 22v-6"
-        stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} strokeLinecap="round" />
-      <Path d="M5 16l7-6 7 6H5z"
-        stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} strokeLinejoin="round" fill="none" />
-      <Path d="M7 10l5-5 5 5H7z"
-        stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} strokeLinejoin="round" fill="none" />
-    </Svg>
-  );
-}
-
-function UserTabIcon() {
-  return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
-      <Path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"
-        stroke={Colors.textLight} strokeWidth={1.8} strokeLinecap="round" />
-      <Circle cx={12} cy={7} r={4} stroke={Colors.textLight} strokeWidth={1.8} />
-    </Svg>
-  );
-}
 
 // ── Datos mock ────────────────────────────────────────────────────────────────
 
 const reportesMock = [
-  { id: '1', cultivo: 'Maiz rojo',   tipo: 'Riego',      etapa: 'Germinacion', fecha: '25/06/24' },
-  { id: '2', cultivo: 'Frijol bayo', tipo: 'Podacion',   etapa: 'Cosecha',     fecha: '25/06/24' },
-  { id: '3', cultivo: 'Lechuga',     tipo: 'Riego',      etapa: 'Germinacion', fecha: '25/06/24' },
-  { id: '4', cultivo: 'Maiz rojo',   tipo: 'Riego',      etapa: 'Germinacion', fecha: '24/06/24' },
-  { id: '5', cultivo: 'Tomate',      tipo: 'Crecimiento',etapa: 'Germinacion', fecha: '23/06/24' },
+  { id: '1', cultivo: 'Maiz rojo', tipo: 'Riego', etapa: 'Germinacion', fecha: '25/06/24' },
+  { id: '2', cultivo: 'Frijol bayo', tipo: 'Podacion', etapa: 'Cosecha', fecha: '25/06/24' },
+  { id: '3', cultivo: 'Lechuga', tipo: 'Riego', etapa: 'Germinacion', fecha: '25/06/24' },
+  { id: '4', cultivo: 'Maiz rojo', tipo: 'Riego', etapa: 'Germinacion', fecha: '24/06/24' },
+  { id: '5', cultivo: 'Tomate', tipo: 'Crecimiento', etapa: 'Germinacion', fecha: '23/06/24' },
 ];
 
 const filtros = ['Todos', 'Riego', 'Poda', 'fertiliza'];
