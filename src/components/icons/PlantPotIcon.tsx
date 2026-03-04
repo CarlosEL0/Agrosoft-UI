@@ -4,12 +4,14 @@ import Svg, { Path, Rect } from 'react-native-svg';
 
 export function PlantPotIcon({ size = 52 }: { size?: number }) {
     return (
-        <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
-            <Rect x={16} y={36} width={32} height={22} rx={4} fill={Colors.primary} />
-            <Path d="M20 36l4-10h16l4 10H20z" fill={Colors.primary} opacity={0.7} />
-            <Path d="M32 36V22" stroke="#fff" strokeWidth={2} strokeLinecap="round" />
-            <Path d="M32 28c0 0-6-3-8-9 0 0 6-2 10 6" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" fill="none" />
-            <Path d="M32 24c0 0 4-4 8-3 0 0 0 6-8 5" stroke="#fff" strokeWidth={1.8} strokeLinecap="round" fill="none" />
+        <Svg width={size} height={size} viewBox="0 0 56 56" fill="none">
+            <Path d="M16 36h24l-3 10H19L16 36z" fill={Colors.textDark} />
+            <Rect x={14} y={32} width={28} height={6} rx={2} fill={Colors.textDark} />
+            <Path d="M28 32V20" stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" />
+            <Path d="M28 26C28 26 20 24 18 16C18 16 26 12 30 20"
+                stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+            <Path d="M28 22C28 22 34 18 38 22C38 22 36 30 28 28"
+                stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
         </Svg>
     );
 }
