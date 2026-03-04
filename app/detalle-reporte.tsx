@@ -1,17 +1,20 @@
-// app/historial-cultivo.tsx
+// app/detalle-reporte.tsx
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Svg, Path, Circle, Rect } from 'react-native-svg';
 import { Colors } from '@/src/theme/colors';
+
+const { width } = Dimensions.get('window');
 
 // ── Íconos ───────────────────────────────────────────────────────────────────
 
@@ -25,7 +28,7 @@ function BackIcon() {
   );
 }
 
-function PlantCircleIcon({ size = 48 }: { size?: number }) {
+function PlantCircleIcon({ size = 50 }: { size?: number }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 64 64" fill="none">
       <Circle cx={32} cy={32} r={32} fill={Colors.primary} />
@@ -39,9 +42,9 @@ function PlantCircleIcon({ size = 48 }: { size?: number }) {
   );
 }
 
-function ImageIcon() {
+function ImagePlaceholderIcon({ size = 40 }: { size?: number }) {
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Rect x={3} y={3} width={18} height={18} rx={2} stroke={Colors.textLight} strokeWidth={1.5} />
       <Circle cx={8.5} cy={8.5} r={1.5} fill={Colors.textLight} />
       <Path d="M21 15l-5-5L5 21" stroke={Colors.textLight} strokeWidth={1.5}
@@ -84,28 +87,21 @@ function UserTabIcon() {
   );
 }
 
-// ── Datos mock ────────────────────────────────────────────────────────────────
-
-const reportesMock = [
-  { id: '1', tipo: 'Riego', etapa: 'Germinacion', fecha: '25/06/24' },
-  { id: '2', tipo: 'Podacion', etapa: 'Cosecha', fecha: '25/06/24' },
-  { id: '3', tipo: 'Riego', etapa: 'Germinacion', fecha: '25/06/24' },
-  { id: '4', tipo: 'Riego', etapa: 'Germinacion', fecha: '25/06/24' },
-  { id: '5', tipo: 'Crecimiento', etapa: 'Germinacion', fecha: '25/06/24' },
-];
-
-const filtros = ['Todos', 'Riego', 'Poda', 'fertiliza'];
-
 // ── Pantalla ──────────────────────────────────────────────────────────────────
 
-export default function HistorialCultivoScreen() {
+export default function DetalleReporteScreen() {
   const router = useRouter();
-  const [filtroActivo, setFiltroActivo] = useState('Todos');
 
-  const reportesFiltrados = reportesMock.filter((r) => {
-    if (filtroActivo === 'Todos') return true;
-    return r.tipo.toLowerCase().includes(filtroActivo.toLowerCase());
-  });
+  // Mock data — luego vendrá de la API
+  const reporte = {
+    tipo: 'Riego',
+    etapa: 'Germinacion',
+    fecha: '25/06/24',
+    detalles: [
+        { label: 'Humedad del suelo', value: 'Baja' },
+    ],
+    fotos: [null, null], // placeholders
+  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -115,66 +111,71 @@ export default function HistorialCultivoScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <BackIcon />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Reportes</Text>
+        <Text style={styles.headerTitle}>Reporte de {reporte.tipo.toLowerCase()}</Text>
       </View>
 
-      {/* ── Subtítulo ── */}
-      <Text style={styles.subTitle}>Historial de tu cultivo</Text>
-
-      {/* ── Filtros ── */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.filtrosRow}
-        style={{ maxHeight: 52, marginBottom: 16 }}
-        >
-        {filtros.map((f) => (
-          <TouchableOpacity
-            key={f}
-            style={[styles.filtroPill, filtroActivo === f && styles.filtroPillActive]}
-            onPress={() => setFiltroActivo(f)}
-          >
-            <Text style={[
-              styles.filtroPillText,
-              filtroActivo === f && styles.filtroPillTextActive,
-            ]}>
-              {f}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* ── Lista de reportes ── */}
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {reportesFiltrados.map((reporte) => (
-          <TouchableOpacity key={reporte.id} style={styles.reporteCard} onPress={() => router.push('./detalle-reporte')}>
+
+        {/* ── Card "Tu reporte" ── */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Tu reporte</Text>
+
+          {/* Info principal */}
+          <View style={styles.reporteMain}>
             {/* Ícono planta */}
             <View style={styles.reporteIcono}>
               <PlantCircleIcon size={50} />
             </View>
 
-            {/* Info */}
-            <View style={styles.reporteInfo}>
+            {/* Tipo + Etapa */}
+            <View style={styles.reporteInfoLeft}>
               <Text style={styles.reporteTipo}>Tipo: {reporte.tipo}</Text>
-              <View style={styles.reporteFechaRow}>
-                <Text style={styles.reporteFechaLabel}>Fecha</Text>
-                <View style={styles.reporteFechaBox}>
-                  <Text style={styles.reporteFechaText}>{reporte.fecha}</Text>
-                </View>
-              </View>
               <Text style={styles.reporteEtapa}>Etapa: {reporte.etapa}</Text>
             </View>
 
-            {/* Foto placeholder */}
-            <View style={styles.reporteFoto}>
-              <ImageIcon />
+            {/* Fecha */}
+            <View style={styles.reporteFechaGroup}>
+              <Text style={styles.reporteFechaLabel}>Fecha</Text>
+              <View style={styles.reporteFechaBox}>
+                <Text style={styles.reporteFechaText}>{reporte.fecha}</Text>
+              </View>
             </View>
-          </TouchableOpacity>
-        ))}
+          </View>
+        </View>
+
+        {/* ── Card "Detalles del reporte" ── */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Detalles del reporte</Text>
+
+          {reporte.detalles.map((item, index) => (
+            <View key={index}>
+              <View style={styles.detalleRow}>
+                <Text style={styles.detalleLabel}>{item.label}</Text>
+                <Text style={styles.detalleValue}>{item.value}</Text>
+              </View>
+              {index < reporte.detalles.length - 1 && (
+                <View style={styles.detalleDivider} />
+              )}
+            </View>
+          ))}
+        </View>
+
+        {/* ── Card "Fotos del reporte" ── */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Fotos del reporte</Text>
+          <View style={styles.fotosRow}>
+            {reporte.fotos.map((_, index) => (
+              <View key={index} style={styles.fotoPlaceholder}>
+                <ImagePlaceholderIcon size={40} />
+              </View>
+            ))}
+          </View>
+        </View>
+
       </ScrollView>
 
       {/* ── Tab Bar ── */}
@@ -212,65 +213,38 @@ const styles = StyleSheet.create({
     gap: 14,
     paddingHorizontal: 22,
     paddingTop: 16,
-    paddingBottom: 8,
+    paddingBottom: 12,
   },
   headerTitle: {
     fontFamily: 'Rubik_500Medium',
     fontSize: 20,
     color: Colors.textDark,
+    textTransform: 'capitalize',
   },
 
-  // Subtítulo
-  subTitle: {
-    fontFamily: 'Rubik_500Medium',
-    fontSize: 16,
-    color: Colors.textDark,
-    paddingHorizontal: 22,
-    marginBottom: 12,
-  },
-
- filtrosRow: {
-  paddingHorizontal: 22,
-  gap: 8,
-  marginBottom: 6,
-  flexDirection: 'row',
-},
-filtroPill: {
-  paddingHorizontal: 18,
-  paddingVertical: 8,
-  borderRadius: 20,
-  backgroundColor: '#fff',
-  height: 36,
-  justifyContent: 'center',
-},
-  filtroPillActive: {
-    backgroundColor: Colors.primary,
-  },
-  filtroPillText: {
-    fontFamily: 'Rubik_400Regular',
-    fontSize: 13,
-    color: Colors.textMedium,
-  },
-  filtroPillTextActive: {
-    fontFamily: 'Rubik_500Medium',
-    color: '#fff',
-  },
-
-  // Lista
-  scroll: {
-    flex: 1,
-  },
+  // Scroll
+  scroll: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 22,
-    gap: 12,
+    gap: 16,
     paddingBottom: 24,
   },
 
-  // Card reporte
-  reporteCard: {
+  // Cards
+  card: {
     backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 20,
+    padding: 18,
+    gap: 14,
+  },
+  cardTitle: {
+    fontFamily: 'Rubik_500Medium',
+    fontSize: 16,
+    color: Colors.textDark,
+  },
+
+  // Reporte main
+  reporteMain: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
@@ -279,19 +253,23 @@ filtroPill: {
     alignItems: 'center',
     justifyContent: 'center',
   },
-  reporteInfo: {
+  reporteInfoLeft: {
     flex: 1,
-    gap: 6,
+    gap: 4,
   },
   reporteTipo: {
     fontFamily: 'Rubik_500Medium',
-    fontSize: 14,
+    fontSize: 15,
     color: Colors.textDark,
   },
-  reporteFechaRow: {
-    flexDirection: 'row',
+  reporteEtapa: {
+    fontFamily: 'Rubik_400Regular',
+    fontSize: 13,
+    color: Colors.textMedium,
+  },
+  reporteFechaGroup: {
     alignItems: 'center',
-    gap: 8,
+    gap: 4,
   },
   reporteFechaLabel: {
     fontFamily: 'Rubik_400Regular',
@@ -301,26 +279,47 @@ filtroPill: {
   reporteFechaBox: {
     backgroundColor: Colors.textDark,
     borderRadius: 8,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
   },
   reporteFechaText: {
     fontFamily: 'Rubik_400Regular',
-    fontSize: 11,
+    fontSize: 12,
     color: '#fff',
   },
-  reporteEtapa: {
+
+  // Detalles
+  detalleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  detalleLabel: {
+    fontFamily: 'Rubik_500Medium',
+    fontSize: 14,
+    color: Colors.textDark,
+  },
+  detalleValue: {
     fontFamily: 'Rubik_400Regular',
-    fontSize: 12,
+    fontSize: 14,
     color: Colors.textMedium,
   },
+  detalleDivider: {
+    height: 1,
+    backgroundColor: '#f0f0f0',
+  },
 
-  // Foto placeholder
-  reporteFoto: {
-    width: 52,
-    height: 52,
+  // Fotos
+  fotosRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  fotoPlaceholder: {
+    width: (width - 44 - 36 - 12) / 2,
+    height: 120,
     backgroundColor: '#e8ede9',
-    borderRadius: 12,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
