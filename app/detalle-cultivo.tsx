@@ -213,7 +213,8 @@ export default function DetalleCultivoScreen() {
 
         {/* ── Botones de acción 2x2 ── */}
         <View style={styles.accionesGrid}>
-          <TouchableOpacity style={[styles.accionBtn, styles.accionBtnDark]}>
+          <TouchableOpacity style={[styles.accionBtn, styles.accionBtnDark]}onPress={() => router.push('./crear-reporte')}
+>
             <View style={styles.accionBtnContent}>
               <PlusIcon />
               <Text style={styles.accionBtnTextLight}>Crear reporte</Text>
