@@ -12,80 +12,12 @@ import {
   View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Circle, Path, Rect, Svg } from 'react-native-svg';
 
-// ── Íconos ───────────────────────────────────────────────────────────────────
-
-function HomeIcon() {
-  return (
-    <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"
-        stroke={Colors.primary} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M9 21V12h6v9"
-        stroke={Colors.primary} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function BellIcon() {
-  return (
-    <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
-      <Path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"
-        stroke={Colors.textDark} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M13.73 21a2 2 0 01-3.46 0"
-        stroke={Colors.textDark} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-      <Circle cx={18} cy={5} r={4} fill={Colors.textDark} />
-      <Path d="M18 3v4M16 5h4" stroke="#fff" strokeWidth={1.2} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function PlantPotIcon({ size = 56 }: { size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 56 56" fill="none">
-      {/* Maceta */}
-      <Path d="M16 36h24l-3 10H19L16 36z" fill={Colors.textDark} />
-      <Rect x={14} y={32} width={28} height={6} rx={2} fill={Colors.textDark} />
-      {/* Planta */}
-      <Path d="M28 32V20" stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" />
-      {/* Hoja izquierda */}
-      <Path d="M28 26C28 26 20 24 18 16C18 16 26 12 30 20"
-        stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      {/* Hoja derecha */}
-      <Path d="M28 22C28 22 34 18 38 22C38 22 36 30 28 28"
-        stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </Svg>
-  );
-}
-
-function PlantPotSmallIcon({ size = 44 }: { size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 56 56" fill="none">
-      <Path d="M16 36h24l-3 10H19L16 36z" fill={Colors.textDark} />
-      <Rect x={14} y={32} width={28} height={6} rx={2} fill={Colors.textDark} />
-      <Path d="M28 32V20" stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" />
-      <Path d="M28 26C28 26 20 24 18 16C18 16 26 12 30 20"
-        stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <Path d="M28 22C28 22 34 18 38 22C38 22 36 30 28 28"
-        stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </Svg>
-  );
-}
-
-function RobotIcon() {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Rect x={3} y={8} width={18} height={13} rx={2} stroke={Colors.textDark} strokeWidth={1.5} />
-      <Path d="M12 8V4" stroke={Colors.textDark} strokeWidth={1.5} strokeLinecap="round" />
-      <Circle cx={12} cy={3} r={1} fill={Colors.textDark} />
-      <Circle cx={8.5} cy={13} r={1.5} fill={Colors.textDark} />
-      <Circle cx={15.5} cy={13} r={1.5} fill={Colors.textDark} />
-      <Path d="M9 17h6" stroke={Colors.textDark} strokeWidth={1.5} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-
+import { BellIcon } from '@/src/components/icons/BellIcon';
+import { HomeIcon } from '@/src/components/icons/HomeIcon';
+import { PlantPotIcon } from '@/src/components/icons/PlantPotIcon';
+import { PlantPotSmallIcon } from '@/src/components/icons/PlantPotSmallIcon';
+import { RobotIcon } from '@/src/components/icons/RobotIcon';
 
 // ── Pantalla Home ─────────────────────────────────────────────────────────────
 
