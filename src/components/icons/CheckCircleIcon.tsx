@@ -1,0 +1,12 @@
+import { Colors } from '@/src/theme/colors';
+import React from 'react';
+import Svg, { Circle, Path } from 'react-native-svg';
+
+export function CheckCircleIcon({ size = 28 }: { size?: number }) {
+    return (
+        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+            <Circle cx={12} cy={12} r={10} fill={Colors.primary} />
+            <Path d="M8 12l3 3 5-5" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+        </Svg>
+    );
+}

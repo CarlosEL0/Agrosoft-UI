@@ -1,112 +1,23 @@
 // app/(tabs)/index.tsx
 
+import { TabBar } from '@/src/components/ui/TabBar';
+import { Colors } from '@/src/theme/colors';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
-  Dimensions,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Svg, Path, Circle, Ellipse, Rect, G } from 'react-native-svg';
-import { Colors } from '@/src/theme/colors';
 
-const { width } = Dimensions.get('window');
-
-// ── Íconos ───────────────────────────────────────────────────────────────────
-
-function HomeIcon() {
-  return (
-    <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
-      <Path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"
-        stroke={Colors.primary} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M9 21V12h6v9"
-        stroke={Colors.primary} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-    </Svg>
-  );
-}
-
-function BellIcon() {
-  return (
-    <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
-      <Path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"
-        stroke={Colors.textDark} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d="M13.73 21a2 2 0 01-3.46 0"
-        stroke={Colors.textDark} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-      <Circle cx={18} cy={5} r={4} fill={Colors.textDark} />
-      <Path d="M18 3v4M16 5h4" stroke="#fff" strokeWidth={1.2} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function PlantPotIcon({ size = 56 }: { size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 56 56" fill="none">
-      {/* Maceta */}
-      <Path d="M16 36h24l-3 10H19L16 36z" fill={Colors.textDark} />
-      <Rect x={14} y={32} width={28} height={6} rx={2} fill={Colors.textDark} />
-      {/* Planta */}
-      <Path d="M28 32V20" stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" />
-      {/* Hoja izquierda */}
-      <Path d="M28 26C28 26 20 24 18 16C18 16 26 12 30 20"
-        stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      {/* Hoja derecha */}
-      <Path d="M28 22C28 22 34 18 38 22C38 22 36 30 28 28"
-        stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </Svg>
-  );
-}
-
-function PlantPotSmallIcon({ size = 44 }: { size?: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 56 56" fill="none">
-      <Path d="M16 36h24l-3 10H19L16 36z" fill={Colors.textDark} />
-      <Rect x={14} y={32} width={28} height={6} rx={2} fill={Colors.textDark} />
-      <Path d="M28 32V20" stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" />
-      <Path d="M28 26C28 26 20 24 18 16C18 16 26 12 30 20"
-        stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <Path d="M28 22C28 22 34 18 38 22C38 22 36 30 28 28"
-        stroke={Colors.textDark} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </Svg>
-  );
-}
-
-function RobotIcon() {
-  return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none">
-      <Rect x={3} y={8} width={18} height={13} rx={2} stroke={Colors.textDark} strokeWidth={1.5} />
-      <Path d="M12 8V4" stroke={Colors.textDark} strokeWidth={1.5} strokeLinecap="round" />
-      <Circle cx={12} cy={3} r={1} fill={Colors.textDark} />
-      <Circle cx={8.5} cy={13} r={1.5} fill={Colors.textDark} />
-      <Circle cx={15.5} cy={13} r={1.5} fill={Colors.textDark} />
-      <Path d="M9 17h6" stroke={Colors.textDark} strokeWidth={1.5} strokeLinecap="round" />
-    </Svg>
-  );
-}
-
-function TreeTabIcon({ active = false }: { active?: boolean }) {
-  return (
-    <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 22v-6" stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} strokeLinecap="round" />
-      <Path d="M5 16l7-6 7 6H5z" stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} strokeLinejoin="round" fill="none" />
-      <Path d="M7 10l5-5 5 5H7z" stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} strokeLinejoin="round" fill="none" />
-    </Svg>
-  );
-}
-
-function UserTabIcon({ active = false }: { active?: boolean }) {
-  return (
-    <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
-      <Path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"
-        stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} strokeLinecap="round" />
-      <Circle cx={12} cy={7} r={4}
-        stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} />
-    </Svg>
-  );
-}
+import { BellIcon } from '@/src/components/icons/BellIcon';
+import { HomeIcon } from '@/src/components/icons/HomeIcon';
+import { PlantPotIcon } from '@/src/components/icons/PlantPotIcon';
+import { PlantPotSmallIcon } from '@/src/components/icons/PlantPotSmallIcon';
+import { RobotIcon } from '@/src/components/icons/RobotIcon';
 
 // ── Pantalla Home ─────────────────────────────────────────────────────────────
 
@@ -156,18 +67,18 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
-        
+
         {/* ── ¿Qué deseas hacer? ── */}
         <Text style={styles.actionTitle}>Que deseas hacer?</Text>
         <View style={styles.actionsContainer}>
           <View style={styles.actionsRow}>
             <TouchableOpacity style={styles.actionPill} onPress={() => router.push('./crear-cultivo')}>
-                <Text style={styles.actionPillText}>Crear cultivo</Text>
+              <Text style={styles.actionPillText}>Crear cultivo</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionPill} onPress={() => router.push('./(tabs)/cultivos')}>
-                <Text style={styles.actionPillText}>ver cultivos</Text>
+              <Text style={styles.actionPillText}>ver cultivos</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionPill, styles.actionPill]}onPress={() => router.push('./historial-general')}>
+            <TouchableOpacity style={[styles.actionPill, styles.actionPill]} onPress={() => router.push('./historial-general')}>
               <Text style={styles.actionPillText}>Historial</Text>
             </TouchableOpacity>
           </View>
@@ -200,20 +111,7 @@ export default function HomeScreen() {
       </ScrollView>
 
       {/* ── Tab Bar ── */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabItem}>
-          <HomeIcon />
-          <Text style={[styles.tabLabel, styles.tabLabelActive]}>Inicio</Text>
-        </TouchableOpacity>
-       <TouchableOpacity style={styles.tabItem} onPress={() => router.push('./(tabs)/cultivos')}>
-          <TreeTabIcon />
-          <Text style={styles.tabLabel}>Cultivos</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
-          <UserTabIcon />
-          <Text style={styles.tabLabel}>Perfil</Text>
-        </TouchableOpacity>
-      </View>
+      <TabBar activeTab="inicio" />
     </SafeAreaView>
   );
 }
@@ -338,7 +236,7 @@ const styles = StyleSheet.create({
   },
 
   // Acciones
-    actionsContainer: {
+  actionsContainer: {
     backgroundColor: '#e8ede9',
     borderRadius: 16,
     padding: 12,
@@ -363,12 +261,12 @@ const styles = StyleSheet.create({
     color: Colors.textDark,
   },
   actionTitle: {
-  fontFamily: 'Rubik_500Medium',
-  fontSize: 17,
-  color: Colors.textDark,
-  textAlign: 'center',
-  marginBottom: 12,
-},
+    fontFamily: 'Rubik_500Medium',
+    fontSize: 17,
+    color: Colors.textDark,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
 
   // Card alerta
   alertCard: {
@@ -427,29 +325,5 @@ const styles = StyleSheet.create({
     fontFamily: 'Rubik_500Medium',
     fontSize: 13,
     color: '#fff',
-  },
-
-  // Tab Bar
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e8e8e8',
-    paddingVertical: 10,
-    paddingBottom: 16,
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 3,
-  },
-  tabLabel: {
-    fontFamily: 'Rubik_400Regular',
-    fontSize: 12,
-    color: Colors.textLight,
-  },
-  tabLabelActive: {
-    fontFamily: 'Rubik_500Medium',
-    color: Colors.primary,
   },
 });
