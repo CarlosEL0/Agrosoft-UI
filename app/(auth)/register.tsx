@@ -2,6 +2,7 @@ import { Colors } from '@/src/theme/colors';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -12,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { api } from '@/src/api/axiosConfig';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Importaciones extraídas
@@ -32,9 +34,41 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleRegister = () => {
-    // TODO: lógica de registro
-    router.replace('/(tabs)');
+  const handleRegister = async () => {
+    if (!nombre || !apellidos || !email || !password) {
+      Alert.alert('Error', 'Por favor llena todos los campos');
+      return;
+    }
+
+    try {
+      const payload = {
+        nombre: nombre,
+        apellido: apellidos,
+        correoElectronico: email,
+        password: password
+      };
+
+      const response = await api.post('/users', payload);
+
+      if (response.status === 201 || response.status === 200) {
+        if (Platform.OS === 'web') {
+          window.alert('Éxito: Te has registrado correctamente. Ahora puedes iniciar sesión.');
+          router.replace('/login');
+        } else {
+          Alert.alert('Éxito', 'Te has registrado correctamente. Ahora puedes iniciar sesión.', [
+            { text: 'OK', onPress: () => router.replace('/login') }
+          ]);
+        }
+      } else {
+        const errorMsg = response.data?.message || 'Hubo un problema al registrarte';
+        if (Platform.OS === 'web') window.alert('Error: ' + errorMsg);
+        else Alert.alert('Error', errorMsg);
+      }
+    } catch (error: any) {
+      console.error('Error al registrar usuario:', error);
+      const errorMsg = error.response?.data?.message || 'Hubo un problema con la conexión al servidor.';
+      Alert.alert('Error', errorMsg);
+    }
   };
 
   return (

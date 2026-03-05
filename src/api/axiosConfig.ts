@@ -15,7 +15,7 @@ api.interceptors.request.use(
   async (config) => {
     try {
       // 🛑 REGLA DE ORO: Si es login o registro, dejamos pasar la petición limpia (sin token)
-      if (config.url && (config.url.includes('/auth/login') || config.url.includes('/register'))) {
+      if (config.url && (config.url.includes('/auth/login') || config.url.includes('/users'))) {
         return config;
       }
 
@@ -31,7 +31,7 @@ api.interceptors.request.use(
       if (token && token !== 'undefined' && token !== 'null') {
         config.headers.Authorization = `Bearer ${token}`;
       }
-      
+
       return config;
     } catch (error) {
       console.error('Error al obtener el token:', error);
