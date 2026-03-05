@@ -51,6 +51,17 @@ export default function RegisterScreen() {
       const response = await api.post('/users', payload);
 
       if (response.status === 201 || response.status === 200) {
+        // Guardamos el ID del usuario recién creado
+        const usuarioId = response.data?.data?.id;
+        if (usuarioId) {
+          if (Platform.OS === 'web') {
+            localStorage.setItem('userId', usuarioId);
+          } else {
+            const SecureStore = require('expo-secure-store');
+            await SecureStore.setItemAsync('userId', usuarioId);
+          }
+        }
+
         if (Platform.OS === 'web') {
           window.alert('Éxito: Te has registrado correctamente. Ahora puedes iniciar sesión.');
           router.replace('/login');

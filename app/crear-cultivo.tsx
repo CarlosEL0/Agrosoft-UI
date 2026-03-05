@@ -5,6 +5,7 @@ import { Colors } from '@/src/theme/colors';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  Alert,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
@@ -26,7 +27,7 @@ import { RobotIcon } from '@/src/components/icons/RobotIcon';
 import { StepIndicator } from '@/src/components/ui/StepIndicator';
 import {
   CultivoFormData,
-  etapasDefault,
+  generarEtapasPreview,
   tiposCultivo
 } from '@/src/utils/formSchemas';
 
@@ -193,16 +194,96 @@ function Paso2({
   );
 }
 
-// ── Paso 3: Etapas del ciclo ──────────────────────────────────────────────────
+// ── Paso 3: Datos del ciclo ───────────────────────────────────────────────────
 
 function Paso3({
+  data,
+  onChange,
+  onNext,
+}: {
+  data: CultivoFormData;
+  onChange: (key: keyof CultivoFormData, value: any) => void;
+  onNext: () => void;
+}) {
+  return (
+    <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
+      <View style={styles.pasoCard}>
+        <View style={styles.cultivoPreview}>
+          <PlantCircleIcon size={72} />
+          <Text style={styles.cultivoPreviewNombre}>Fase Agrícola</Text>
+        </View>
+
+        <View>
+          <Text style={styles.fieldLabel}>Nombre del ciclo</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Ej: Temporada 2026, Ciclo Inicial..."
+            placeholderTextColor={Colors.textPlaceholder}
+            value={data.nombreCiclo}
+            onChangeText={(v) => onChange('nombreCiclo', v)}
+          />
+        </View>
+
+        <View>
+          <Text style={styles.fieldLabel}>Fecha de inicio</Text>
+          <View style={styles.dateInput}>
+            <TextInput
+              style={[styles.textInput, { flex: 1, marginBottom: 0 }]}
+              placeholder="DD/MM/AAAA"
+              placeholderTextColor={Colors.textPlaceholder}
+              value={data.fechaInicioCiclo}
+              onChangeText={(v) => onChange('fechaInicioCiclo', v)}
+              keyboardType="numeric"
+            />
+            <View style={styles.calendarIcon}>
+              <CalendarIcon />
+            </View>
+          </View>
+        </View>
+
+        <View style={{ marginTop: 14 }}>
+          <Text style={styles.fieldLabel}>Fecha de fin estimada</Text>
+          <View style={styles.dateInput}>
+            <TextInput
+              style={[styles.textInput, { flex: 1, marginBottom: 0 }]}
+              placeholder="DD/MM/AAAA"
+              placeholderTextColor={Colors.textPlaceholder}
+              value={data.fechaFinCiclo}
+              onChangeText={(v) => onChange('fechaFinCiclo', v)}
+              keyboardType="numeric"
+            />
+            <View style={styles.calendarIcon}>
+              <CalendarIcon />
+            </View>
+          </View>
+        </View>
+      </View>
+
+      <TouchableOpacity
+        style={[
+          styles.continueBtn,
+          (!data.nombreCiclo || !data.fechaInicioCiclo || !data.fechaFinCiclo) && styles.continueBtnDisabled,
+        ]}
+        onPress={onNext}
+        disabled={!data.nombreCiclo || !data.fechaInicioCiclo || !data.fechaFinCiclo}
+        activeOpacity={0.85}
+      >
+        <Text style={styles.continueBtnText}>Continuar &gt;</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
+}
+
+// ── Paso 4: Etapas del ciclo ──────────────────────────────────────────────────
+
+function Paso4({
   data,
   onNext,
 }: {
   data: CultivoFormData;
   onNext: () => void;
 }) {
-  const etapas = data.etapas.length > 0 ? data.etapas : etapasDefault;
+  const etapas = data.etapas.length > 0 ? data.etapas : generarEtapasPreview(data.fechaSiembra);
 
   return (
     <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
@@ -261,9 +342,9 @@ function Paso3({
   );
 }
 
-// ── Paso 4: Confirmar cultivo ─────────────────────────────────────────────────
+// ── Paso 5: Confirmar cultivo ─────────────────────────────────────────────────
 
-function Paso4({
+function Paso5({
   data,
   onEdit,
   onCreate,
@@ -272,12 +353,12 @@ function Paso4({
   onEdit: () => void;
   onCreate: () => void;
 }) {
-  const etapas = data.etapas.length > 0 ? data.etapas : etapasDefault;
+  const etapas = data.etapas.length > 0 ? data.etapas : generarEtapasPreview(data.fechaSiembra);
   const resumen = [
-    { label: 'Siembra', value: data.fechaSiembra || '24/02/25' },
+    { label: 'Siembra', value: data.fechaSiembra || 'Seleccionada hoy' },
     { label: 'Semillas', value: data.cantidadSemillas || '80 kg' },
     { label: 'Etapas', value: String(etapas.length) },
-    { label: 'Cosecha estm.', value: '31/06/25' },
+    { label: 'Cosecha estm.', value: etapas[etapas.length - 1].fin },
     { label: 'Terreno', value: data.tamanoTerreno || '15 m2' },
   ];
 
@@ -342,10 +423,13 @@ export default function CrearCultivoScreen() {
     cantidadSemillas: '',
     fechaSiembra: '',
     etapas: [],
+    nombreCiclo: '',
+    fechaInicioCiclo: '',
+    fechaFinCiclo: '',
     nombrePersonalizado: '',
   });
 
-  const titles = ['Crear cultivo', 'Datos del cultivo', 'Etapas del ciclo', 'Confirmar cultivo'];
+  const titles = ['Crear cultivo', 'Datos del cultivo', 'Datos del ciclo', 'Etapas del ciclo', 'Confirmar cultivo'];
 
   const handleChange = (key: keyof CultivoFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -358,9 +442,112 @@ export default function CrearCultivoScreen() {
 
   const handleNext = () => setPaso(paso + 1);
 
-  const handleCreate = () => {
-    // TODO: guardar cultivo
-    router.replace('/(tabs)/cultivos');
+  const handleCreate = async () => {
+    try {
+      // 1. Obtener ID del usuario guardado en el Login
+      let userId: string | null = null;
+      if (Platform.OS === 'web') {
+        userId = localStorage.getItem('userId');
+      } else {
+        const SecureStore = require('expo-secure-store');
+        userId = await SecureStore.getItemAsync('userId');
+      }
+
+      if (!userId) {
+        Alert.alert('Error', 'No se encontró la sesión del usuario. Vuelve a iniciar sesión.');
+        return;
+      }
+
+      // 2. Formatear la fecha a YYYY-MM-DD (de DD/MM/AAAA)
+      let fechaFormateada = new Date().toISOString().split('T')[0]; // fallback
+      if (formData.fechaSiembra) {
+        const parts = formData.fechaSiembra.split('/');
+        if (parts.length === 3) {
+          let y = parts[2];
+          if (y.length === 2) y = '20' + y;
+          const m = parts[1].padStart(2, '0');
+          const d = parts[0].padStart(2, '0');
+          fechaFormateada = `${y}-${m}-${d}`;
+        }
+      }
+
+      // 3. Extraer solo números para enviarlos como enteros (Ej: "100 M2" -> 100)
+      const tamanoTerrenoNumerico = formData.tamanoTerreno.replace(/[^0-9]/g, '');
+      const cantidadSemillasNumerico = formData.cantidadSemillas.replace(/[^0-9]/g, '');
+
+      // 4. Preparar Payload del Cultivo (ajustado para coincidir con CultivoRequestDTO del backend)
+      const cultivoPayload = {
+        idUsuario: userId,
+        nombreCultivo: formData.tipoCultivo === 'Otro' ? formData.nombrePersonalizado : formData.tipoCultivo,
+        tipoCultivo: formData.tipoCultivoDetalle || 'Vegetal',
+        fechaSiembra: fechaFormateada,
+        notasGenerales: `Variedad: ${formData.variedad || 'Ninguna'}`.trim(),
+        tamanoTerreno: tamanoTerrenoNumerico ? parseInt(tamanoTerrenoNumerico, 10) : null,
+        cantidadSemillas: cantidadSemillasNumerico ? parseInt(cantidadSemillasNumerico, 10) : null,
+        alturaEsperada: null,
+      };
+
+      // 5. Crear Cultivo
+      const api = require('@/src/api/axiosConfig').api;
+      const responseCultivo = await api.post('/cultivos', cultivoPayload);
+      const idCultivoCreado = responseCultivo.data.data.idCultivo;
+
+      // 6. Al crear el cultivo, creamos su primer Ciclo (Fase Agrícola).
+      // El backend (FaseAgricolaServiceImpl) se encargará automáticamente de generar
+      // las etapas (Germinación, Plántula, etc.) y calcular sus fechas estimadas.
+      if (idCultivoCreado) {
+        let inicioCicloFormateada = fechaFormateada;
+        if (formData.fechaInicioCiclo) {
+          const parts = formData.fechaInicioCiclo.split('/');
+          if (parts.length === 3) {
+            let y = parts[2];
+            if (y.length === 2) y = '20' + y;
+            const m = parts[1].padStart(2, '0');
+            const d = parts[0].padStart(2, '0');
+            inicioCicloFormateada = `${y}-${m}-${d}`;
+          }
+        }
+
+        let finCicloFormateada = fechaFormateada;
+        if (formData.fechaFinCiclo) {
+          const parts = formData.fechaFinCiclo.split('/');
+          if (parts.length === 3) {
+            let y = parts[2];
+            if (y.length === 2) y = '20' + y;
+            const m = parts[1].padStart(2, '0');
+            const d = parts[0].padStart(2, '0');
+            finCicloFormateada = `${y}-${m}-${d}`;
+          }
+        }
+
+        await api.post('/fases', {
+          idCultivo: idCultivoCreado,
+          numeroCiclo: 1,
+          nombreCiclo: formData.nombreCiclo || 'Ciclo 1',
+          fechaInicio: inicioCicloFormateada,
+          fechaFin: finCicloFormateada,
+          estado: 'Activo'
+        });
+      }
+
+      // 7. Éxito y navegación
+      if (Platform.OS === 'web') {
+        window.alert('Éxito: Tu cultivo ha sido creado correctamente.');
+      } else {
+        Alert.alert('Éxito', 'Tu cultivo ha sido creado correctamente.');
+      }
+
+      router.replace('/(tabs)/cultivos');
+
+    } catch (error: any) {
+      console.error('Error al crear cultivo:', error);
+      const errorMsg = error.response?.data?.message || 'Error al conectar con el servidor para crear el cultivo.';
+      if (Platform.OS === 'web') {
+        window.alert('Error: ' + errorMsg);
+      } else {
+        Alert.alert('Error', errorMsg);
+      }
+    }
   };
 
   return (
@@ -379,15 +566,16 @@ export default function CrearCultivoScreen() {
 
         {/* ── Indicador de pasos ── */}
         <View style={styles.stepRow}>
-          <Text style={styles.stepText}>Paso {paso} de 4</Text>
-          <StepIndicator current={paso} total={4} />
+          <Text style={styles.stepText}>Paso {paso} de 5</Text>
+          <StepIndicator current={paso} total={5} />
         </View>
 
         {/* ── Contenido por paso ── */}
         {paso === 1 && <Paso1 data={formData} onChange={handleChange} onNext={handleNext} />}
         {paso === 2 && <Paso2 data={formData} onChange={handleChange} onNext={handleNext} />}
-        {paso === 3 && <Paso3 data={formData} onNext={handleNext} />}
-        {paso === 4 && <Paso4 data={formData} onEdit={() => setPaso(3)} onCreate={handleCreate} />}
+        {paso === 3 && <Paso3 data={formData} onChange={handleChange} onNext={handleNext} />}
+        {paso === 4 && <Paso4 data={formData} onNext={handleNext} />}
+        {paso === 5 && <Paso5 data={formData} onEdit={() => setPaso(4)} onCreate={handleCreate} />}
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

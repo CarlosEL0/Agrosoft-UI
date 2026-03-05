@@ -29,7 +29,11 @@ api.interceptors.request.use(
 
       // Si el token existe y NO dice la palabra mágica "undefined" o "null"
       if (token && token !== 'undefined' && token !== 'null') {
-        config.headers.Authorization = `Bearer ${token}`;
+        console.log('Token encontrado en almacenamiento, inyectando en headers...');
+        // Axios v1+ requiere usar set()
+        config.headers.set('Authorization', `Bearer ${token}`);
+      } else {
+        console.warn('Axios interceptor: No se encontró token válido.');
       }
 
       return config;

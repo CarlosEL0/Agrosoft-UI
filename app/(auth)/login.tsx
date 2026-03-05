@@ -1,15 +1,15 @@
-import { api } from '@/src/api/axiosConfig'; 
+import { api } from '@/src/api/axiosConfig';
 import { EyeIcon } from '@/src/components/icons/EyeIcon';
 import { LockIcon } from '@/src/components/icons/LockIcon';
 import { MailIcon } from '@/src/components/icons/MailIcon';
 import { InputField } from '@/src/components/ui/InputField';
 import { TopoPattern } from '@/src/components/ui/TopoPattern';
 import { Colors } from '@/src/theme/colors';
-import * as SecureStore from 'expo-secure-store'; 
+import * as SecureStore from 'expo-secure-store';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Alert, 
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -27,12 +27,11 @@ export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [cargando, setCargando] = useState(false); 
+  const [cargando, setCargando] = useState(false);
 
   const handleLogin = async () => {
     // Validación rápida
     if (!email || !password) {
-      // En web, Alert a veces falla, usamos window.alert como respaldo
       if (Platform.OS === 'web') {
         window.alert('Por favor ingresa tu correo y contraseña.');
       } else {
@@ -42,7 +41,7 @@ export default function LoginScreen() {
     }
 
     try {
-      setCargando(true); 
+      setCargando(true);
 
       // Petición POST a tu Spring Boot
       const respuesta = await api.post('/auth/login', {
@@ -50,19 +49,53 @@ export default function LoginScreen() {
         password: password,
       });
 
-      // Extraemos el token
-      const { token } = respuesta.data;
-      
+      // Extraemos el token y el ID de la respuesta envolvente (ApiResponse)
+      const token = respuesta.data?.data?.token;
+      let userId = respuesta.data?.data?.usuarioId;
+
+      if (!token) {
+        throw new Error('No se recibió un token válido del servidor.');
+      }
+
+      // IMPORTANTE: Como el backend no devuelve el userId en el login, 
+      // y no queremos modificar el backend, haremos una llamada extra para obtenerlo.
+      if (!userId) {
+        try {
+          // Solicitamos la lista de todos los usuarios
+          const usersRes = await api.get('/users', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const listaUsuarios = usersRes.data?.data || [];
+
+          // Buscamos el usuario que coincida con el correo introducido
+          const usuarioEncontrado = listaUsuarios.find((u: any) => u.correoElectronico === email);
+
+          if (usuarioEncontrado) {
+            userId = usuarioEncontrado.id;
+          } else {
+            console.warn('El correo no se encontró en la lista de usuarios.');
+          }
+        } catch (err) {
+          console.error('Error al obtener la lista de usuarios para extraer el ID:', err);
+        }
+      }
+
+      if (!userId) {
+        throw new Error('No se pudo obtener el ID de usuario del servidor.');
+      }
+
       // Guardamos dependiendo de la plataforma
       if (Platform.OS === 'web') {
         localStorage.setItem('userToken', token);
+        localStorage.setItem('userId', userId);
       } else {
         await SecureStore.setItemAsync('userToken', token);
+        await SecureStore.setItemAsync('userId', userId);
       }
 
       // Vamos a la pantalla de Cultivos
       router.replace('/(tabs)');
-      
+
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
       if (Platform.OS === 'web') {
@@ -118,9 +151,9 @@ export default function LoginScreen() {
               }
             />
 
-            <TouchableOpacity 
-              style={[styles.button, cargando && { opacity: 0.7 }]} 
-              onPress={handleLogin} 
+            <TouchableOpacity
+              style={[styles.button, cargando && { opacity: 0.7 }]}
+              onPress={handleLogin}
               activeOpacity={0.85}
               disabled={cargando}
             >
