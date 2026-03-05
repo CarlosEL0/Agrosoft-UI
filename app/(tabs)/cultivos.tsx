@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   estadoBadgeHecho: {
-    backgroundColor: '#e0e0e0',
+    backgroundColor:Colors.primaryLight,
   },
   estadoText: {
     fontFamily: 'Rubik_500Medium',
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     color: Colors.primary,
   },
   estadoTextHecho: {
-    color: Colors.textMedium,
+    color: Colors.surface,
   },
 
   // FAB

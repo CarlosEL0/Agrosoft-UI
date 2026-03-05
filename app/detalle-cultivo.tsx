@@ -15,7 +15,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Importaciones extraídas
 import { AlertCircleIcon } from '@/src/components/icons/AlertCircleIcon';
-import { AlertTriangleIcon } from '@/src/components/icons/AlertTriangleIcon';
 import { BackIcon } from '@/src/components/icons/BackIcon';
 import { CheckCircleIcon } from '@/src/components/icons/CheckCircleIcon';
 import { HistoryIcon } from '@/src/components/icons/HistoryIcon';
@@ -97,33 +96,28 @@ export default function DetalleCultivoScreen() {
         </View>
 
         {/* ── Botones de acción 2x2 ── */}
-        <View style={styles.accionesGrid}>
-          <TouchableOpacity style={[styles.accionBtn, styles.accionBtnDark]} onPress={() => router.push('./crear-reporte')}
-          >
-            <View style={styles.accionBtnContent}>
+        {/* ── Botones de acción ── */}
+        <View style={styles.accionesContainer}>
+          <View style={styles.accionesRow}>
+            <TouchableOpacity style={[styles.accionBtnHalf, styles.accionBtnLight]} onPress={() => router.push('./historial-cultivo')}>
+              <View style={styles.accionBtnContentCenter}>
+                <HistoryIcon color={Colors.textDark} size={24} />
+                <Text style={styles.accionBtnTextDark}>Historial</Text>
+              </View>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.accionBtnHalf, styles.accionBtnLight]}>
+              <View style={styles.accionBtnContentCenter}>
+                <RobotIcon color={Colors.textDark} size={24} />
+                <Text style={styles.accionBtnTextDark}>Ver análisis IA</Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={[styles.accionBtnFull, styles.accionBtnDark]} onPress={() => router.push('./crear-reporte')}>
+            <View style={styles.accionBtnContentCenter}>
               <PlusIcon />
               <Text style={styles.accionBtnTextLight}>Crear reporte</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.accionBtn, styles.accionBtnLight]}>
-            <View style={styles.accionBtnContent}>
-              <RobotIcon color={Colors.textDark} />
-              <Text style={styles.accionBtnTextDark}>Ver análisis IA</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.accionBtn, styles.accionBtnDark]} onPress={() => router.push('./historial-cultivo')}>
-            <View style={styles.accionBtnContent}>
-              <HistoryIcon />
-              <Text style={styles.accionBtnTextLight}>Historial</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.accionBtn, styles.accionBtnLight]}>
-            <View style={styles.accionBtnContent}>
-              <AlertTriangleIcon color={Colors.textDark} />
-              <Text style={styles.accionBtnTextDark}>Alertas</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -253,13 +247,22 @@ const styles = StyleSheet.create({
   },
 
   // Acciones 2x2
-  accionesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+  // Acciones
+  accionesContainer: {
     gap: 12,
   },
-  accionBtn: {
-    width: (width - 44 - 12) / 2,
+  accionesRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  accionBtnHalf: {
+    flex: 1,
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
+  accionBtnFull: {
+    width: '100%',
     borderRadius: 16,
     paddingVertical: 18,
     paddingHorizontal: 16,
@@ -270,14 +273,15 @@ const styles = StyleSheet.create({
   accionBtnLight: {
     backgroundColor: '#e8ede9',
   },
-  accionBtnContent: {
+  accionBtnContentCenter: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
   },
   accionBtnTextLight: {
     fontFamily: 'Rubik_500Medium',
-    fontSize: 15,
+    fontSize: 16,
     color: '#fff',
   },
   accionBtnTextDark: {
