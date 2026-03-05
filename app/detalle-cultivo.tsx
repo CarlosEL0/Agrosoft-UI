@@ -106,7 +106,10 @@ export default function DetalleCultivoScreen() {
               </View>
             </TouchableOpacity>
 
-            <TouchableOpacity style={[styles.accionBtnHalf, styles.accionBtnLight]}>
+            <TouchableOpacity
+              style={[styles.accionBtnHalf, styles.accionBtnLight]}
+              onPress={() => router.push({ pathname: '/analisis-ia', params: { idCultivo: '123' } })}
+            >
               <View style={styles.accionBtnContentCenter}>
                 <RobotIcon color={Colors.textDark} size={24} />
                 <Text style={styles.accionBtnTextDark}>Ver análisis IA</Text>
