@@ -15,13 +15,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Importaciones extraídas
-import { HomeTabIcon } from '@/src/components/icons/HomeTabIcon';
 import { PlantPotIcon } from '@/src/components/icons/PlantPotIcon';
 import { PlusIcon } from '@/src/components/icons/PlusIcon';
 import { SearchIcon } from '@/src/components/icons/SearchIcon';
 import { TreeIcon } from '@/src/components/icons/TreeIcon';
-import { TreeTabIcon } from '@/src/components/icons/TreeTabIcon';
-import { UserTabIcon } from '@/src/components/icons/UserTabIcon';
+import { TabBar } from '@/src/components/ui/TabBar';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 22 * 2 - 12) / 2;
@@ -136,20 +134,7 @@ export default function CultivosScreen() {
       </TouchableOpacity>
 
       {/* ── Tab Bar ── */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabItem} onPress={() => router.push('/(tabs)')}>
-          <HomeTabIcon />
-          <Text style={styles.tabLabel}>Inicio</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
-          <TreeTabIcon active />
-          <Text style={[styles.tabLabel, styles.tabLabelActive]}>Cultivos</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
-          <UserTabIcon />
-          <Text style={styles.tabLabel}>Perfil</Text>
-        </TouchableOpacity>
-      </View>
+      <TabBar activeTab="cultivos" />
 
     </SafeAreaView>
   );
@@ -332,29 +317,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.4,
     shadowRadius: 8,
     elevation: 6,
-  },
-
-  // Tab Bar
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e8e8e8',
-    paddingVertical: 10,
-    paddingBottom: 16,
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 3,
-  },
-  tabLabel: {
-    fontFamily: 'Rubik_400Regular',
-    fontSize: 12,
-    color: Colors.textLight,
-  },
-  tabLabelActive: {
-    fontFamily: 'Rubik_500Medium',
-    color: Colors.primary,
   },
 });

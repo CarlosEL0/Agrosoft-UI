@@ -1,20 +1,18 @@
 // app/(tabs)/index.tsx
 
+import { TabBar } from '@/src/components/ui/TabBar';
+import { Colors } from '@/src/theme/colors';
+import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   ScrollView,
+  StyleSheet,
+  Text,
   TouchableOpacity,
-  Dimensions,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { Svg, Path, Circle, Ellipse, Rect, G } from 'react-native-svg';
-import { Colors } from '@/src/theme/colors';
-
-const { width } = Dimensions.get('window');
+import { Circle, Path, Rect, Svg } from 'react-native-svg';
 
 // ── Íconos ───────────────────────────────────────────────────────────────────
 
@@ -87,26 +85,7 @@ function RobotIcon() {
   );
 }
 
-function TreeTabIcon({ active = false }: { active?: boolean }) {
-  return (
-    <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
-      <Path d="M12 22v-6" stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} strokeLinecap="round" />
-      <Path d="M5 16l7-6 7 6H5z" stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} strokeLinejoin="round" fill="none" />
-      <Path d="M7 10l5-5 5 5H7z" stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} strokeLinejoin="round" fill="none" />
-    </Svg>
-  );
-}
 
-function UserTabIcon({ active = false }: { active?: boolean }) {
-  return (
-    <Svg width={26} height={26} viewBox="0 0 24 24" fill="none">
-      <Path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"
-        stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} strokeLinecap="round" />
-      <Circle cx={12} cy={7} r={4}
-        stroke={active ? Colors.primary : Colors.textLight} strokeWidth={1.8} />
-    </Svg>
-  );
-}
 
 // ── Pantalla Home ─────────────────────────────────────────────────────────────
 
@@ -156,18 +135,18 @@ export default function HomeScreen() {
             </View>
           </View>
         </View>
-        
+
         {/* ── ¿Qué deseas hacer? ── */}
         <Text style={styles.actionTitle}>Que deseas hacer?</Text>
         <View style={styles.actionsContainer}>
           <View style={styles.actionsRow}>
             <TouchableOpacity style={styles.actionPill} onPress={() => router.push('./crear-cultivo')}>
-                <Text style={styles.actionPillText}>Crear cultivo</Text>
+              <Text style={styles.actionPillText}>Crear cultivo</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionPill} onPress={() => router.push('./(tabs)/cultivos')}>
-                <Text style={styles.actionPillText}>ver cultivos</Text>
+              <Text style={styles.actionPillText}>ver cultivos</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={[styles.actionPill, styles.actionPill]}onPress={() => router.push('./historial-general')}>
+            <TouchableOpacity style={[styles.actionPill, styles.actionPill]} onPress={() => router.push('./historial-general')}>
               <Text style={styles.actionPillText}>Historial</Text>
             </TouchableOpacity>
           </View>
@@ -200,20 +179,7 @@ export default function HomeScreen() {
       </ScrollView>
 
       {/* ── Tab Bar ── */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabItem}>
-          <HomeIcon />
-          <Text style={[styles.tabLabel, styles.tabLabelActive]}>Inicio</Text>
-        </TouchableOpacity>
-       <TouchableOpacity style={styles.tabItem} onPress={() => router.push('./(tabs)/cultivos')}>
-          <TreeTabIcon />
-          <Text style={styles.tabLabel}>Cultivos</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
-          <UserTabIcon />
-          <Text style={styles.tabLabel}>Perfil</Text>
-        </TouchableOpacity>
-      </View>
+      <TabBar activeTab="inicio" />
     </SafeAreaView>
   );
 }
@@ -338,7 +304,7 @@ const styles = StyleSheet.create({
   },
 
   // Acciones
-    actionsContainer: {
+  actionsContainer: {
     backgroundColor: '#e8ede9',
     borderRadius: 16,
     padding: 12,
@@ -363,12 +329,12 @@ const styles = StyleSheet.create({
     color: Colors.textDark,
   },
   actionTitle: {
-  fontFamily: 'Rubik_500Medium',
-  fontSize: 17,
-  color: Colors.textDark,
-  textAlign: 'center',
-  marginBottom: 12,
-},
+    fontFamily: 'Rubik_500Medium',
+    fontSize: 17,
+    color: Colors.textDark,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
 
   // Card alerta
   alertCard: {
@@ -427,29 +393,5 @@ const styles = StyleSheet.create({
     fontFamily: 'Rubik_500Medium',
     fontSize: 13,
     color: '#fff',
-  },
-
-  // Tab Bar
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e8e8e8',
-    paddingVertical: 10,
-    paddingBottom: 16,
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 3,
-  },
-  tabLabel: {
-    fontFamily: 'Rubik_400Regular',
-    fontSize: 12,
-    color: Colors.textLight,
-  },
-  tabLabelActive: {
-    fontFamily: 'Rubik_500Medium',
-    color: Colors.primary,
   },
 });

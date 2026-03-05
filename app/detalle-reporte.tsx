@@ -15,11 +15,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Importaciones extraídas
 import { BackIcon } from '@/src/components/icons/BackIcon';
-import { HomeTabIcon } from '@/src/components/icons/HomeTabIcon';
 import { ImagePlaceholderIcon } from '@/src/components/icons/ImagePlaceholderIcon';
 import { PlantCircleIcon } from '@/src/components/icons/PlantCircleIcon';
-import { TreeTabIcon } from '@/src/components/icons/TreeTabIcon';
-import { UserTabIcon } from '@/src/components/icons/UserTabIcon';
+import { TabBar } from '@/src/components/ui/TabBar';
 
 const { width } = Dimensions.get('window');
 
@@ -116,20 +114,7 @@ export default function DetalleReporteScreen() {
       </ScrollView>
 
       {/* ── Tab Bar ── */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabItem} onPress={() => router.push('/(tabs)')}>
-          <HomeTabIcon />
-          <Text style={styles.tabLabel}>Inicio</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem} onPress={() => router.push('/(tabs)/cultivos')}>
-          <TreeTabIcon active />
-          <Text style={[styles.tabLabel, styles.tabLabelActive]}>Cultivos</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
-          <UserTabIcon />
-          <Text style={styles.tabLabel}>Perfil</Text>
-        </TouchableOpacity>
-      </View>
+      <TabBar activeTab="cultivos" />
 
     </SafeAreaView>
   );
@@ -259,29 +244,5 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-
-  // Tab Bar
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e8e8e8',
-    paddingVertical: 10,
-    paddingBottom: 16,
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 3,
-  },
-  tabLabel: {
-    fontFamily: 'Rubik_400Regular',
-    fontSize: 12,
-    color: Colors.textLight,
-  },
-  tabLabelActive: {
-    fontFamily: 'Rubik_500Medium',
-    color: Colors.primary,
   },
 });

@@ -19,13 +19,11 @@ import { AlertTriangleIcon } from '@/src/components/icons/AlertTriangleIcon';
 import { BackIcon } from '@/src/components/icons/BackIcon';
 import { CheckCircleIcon } from '@/src/components/icons/CheckCircleIcon';
 import { HistoryIcon } from '@/src/components/icons/HistoryIcon';
-import { HomeTabIcon } from '@/src/components/icons/HomeTabIcon';
 import { PlantCircleIcon } from '@/src/components/icons/PlantCircleIcon';
 import { PlusIcon } from '@/src/components/icons/PlusIcon';
 import { RobotIcon } from '@/src/components/icons/RobotIcon';
 import { TreeCircleIcon } from '@/src/components/icons/TreeCircleIcon';
-import { TreeTabIcon } from '@/src/components/icons/TreeTabIcon';
-import { UserTabIcon } from '@/src/components/icons/UserTabIcon';
+import { TabBar } from '@/src/components/ui/TabBar';
 
 const { width } = Dimensions.get('window');
 
@@ -168,20 +166,7 @@ export default function DetalleCultivoScreen() {
       </ScrollView>
 
       {/* ── Tab Bar ── */}
-      <View style={styles.tabBar}>
-        <TouchableOpacity style={styles.tabItem} onPress={() => router.push('/(tabs)')}>
-          <HomeTabIcon />
-          <Text style={styles.tabLabel}>Inicio</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem} onPress={() => router.push('/(tabs)/cultivos')}>
-          <TreeTabIcon active />
-          <Text style={[styles.tabLabel, styles.tabLabelActive]}>Cultivos</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.tabItem}>
-          <UserTabIcon />
-          <Text style={styles.tabLabel}>Perfil</Text>
-        </TouchableOpacity>
-      </View>
+      <TabBar activeTab="cultivos" />
     </SafeAreaView>
   );
 }
@@ -361,29 +346,5 @@ const styles = StyleSheet.create({
   },
   iaItemBold: {
     fontFamily: 'Rubik_600SemiBold',
-  },
-
-  // Tab Bar
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
-    borderTopWidth: 1,
-    borderTopColor: '#e8e8e8',
-    paddingVertical: 10,
-    paddingBottom: 16,
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 3,
-  },
-  tabLabel: {
-    fontFamily: 'Rubik_400Regular',
-    fontSize: 12,
-    color: Colors.textLight,
-  },
-  tabLabelActive: {
-    fontFamily: 'Rubik_500Medium',
-    color: Colors.primary,
   },
 });
