@@ -7,7 +7,7 @@ export function PlusIcon() {
         <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
             <Path
                 d="M12 5v14M5 12h14"
-                stroke={Colors.textLight}
+                stroke={Colors.surface}
                 strokeWidth={2}
                 strokeLinecap="round"
             />

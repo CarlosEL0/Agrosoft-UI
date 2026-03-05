@@ -82,14 +82,16 @@ function Paso1({
         )}
 
         {/* Variedad opcional */}
-        <Text style={styles.fieldLabel}>Variedad (Opcional)</Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Ingrese la variedad"
-          placeholderTextColor={Colors.textPlaceholder}
-          value={data.variedad}
-          onChangeText={(v) => onChange('variedad', v)}
-        />
+        <View>
+          <Text style={styles.fieldLabel}>Variedad (Opcional)</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Ingrese la variedad"
+            placeholderTextColor={Colors.textPlaceholder}
+            value={data.variedad}
+            onChangeText={(v) => onChange('variedad', v)}
+          />
+        </View>
       </View>
 
       <TouchableOpacity
@@ -132,46 +134,54 @@ function Paso2({
         </View>
 
         {/* Campos */}
-        <Text style={styles.fieldLabel}>Tipo de cultivo</Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Hortaliza"
-          placeholderTextColor={Colors.textPlaceholder}
-          value={data.tipoCultivoDetalle}
-          onChangeText={(v) => onChange('tipoCultivoDetalle', v)}
-        />
-
-        <Text style={styles.fieldLabel}>Tamaño de terreno</Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Ej: 100 M2"
-          placeholderTextColor={Colors.textPlaceholder}
-          value={data.tamanoTerreno}
-          onChangeText={(v) => onChange('tamanoTerreno', v)}
-          keyboardType="numeric"
-        />
-
-        <Text style={styles.fieldLabel}>Cantidad de semillas</Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="Ej: 30 Kg"
-          placeholderTextColor={Colors.textPlaceholder}
-          value={data.cantidadSemillas}
-          onChangeText={(v) => onChange('cantidadSemillas', v)}
-        />
-
-        <Text style={styles.fieldLabel}>Fecha de siembra</Text>
-        <View style={styles.dateInput}>
+        <View>
+          <Text style={styles.fieldLabel}>Tipo de cultivo</Text>
           <TextInput
-            style={[styles.textInput, { flex: 1, marginBottom: 0 }]}
-            placeholder="DD/MM/AAAA"
+            style={styles.textInput}
+            placeholder="Hortaliza"
             placeholderTextColor={Colors.textPlaceholder}
-            value={data.fechaSiembra}
-            onChangeText={(v) => onChange('fechaSiembra', v)}
+            value={data.tipoCultivoDetalle}
+            onChangeText={(v) => onChange('tipoCultivoDetalle', v)}
+          />
+        </View>
+
+        <View>
+          <Text style={styles.fieldLabel}>Tamaño de terreno</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Ej: 100 M2"
+            placeholderTextColor={Colors.textPlaceholder}
+            value={data.tamanoTerreno}
+            onChangeText={(v) => onChange('tamanoTerreno', v)}
             keyboardType="numeric"
           />
-          <View style={styles.calendarIcon}>
-            <CalendarIcon />
+        </View>
+
+        <View>
+          <Text style={styles.fieldLabel}>Cantidad de semillas</Text>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Ej: 30 Kg"
+            placeholderTextColor={Colors.textPlaceholder}
+            value={data.cantidadSemillas}
+            onChangeText={(v) => onChange('cantidadSemillas', v)}
+          />
+        </View>
+
+        <View>
+          <Text style={styles.fieldLabel}>Fecha de siembra</Text>
+          <View style={styles.dateInput}>
+            <TextInput
+              style={[styles.textInput, { flex: 1, marginBottom: 0 }]}
+              placeholder="DD/MM/AAAA"
+              placeholderTextColor={Colors.textPlaceholder}
+              value={data.fechaSiembra}
+              onChangeText={(v) => onChange('fechaSiembra', v)}
+              keyboardType="numeric"
+            />
+            <View style={styles.calendarIcon}>
+              <CalendarIcon />
+            </View>
           </View>
         </View>
       </View>
@@ -444,6 +454,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 12,
+    marginBottom: 8,
   },
   cultivoOption: {
     width: (width - 44 - 40 - 12) / 2,
@@ -482,7 +493,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Rubik_500Medium',
     fontSize: 15,
     color: Colors.textDark,
-    marginBottom: -6,
+    marginBottom: 6,
   },
   textInput: {
     backgroundColor: '#ffffff',
