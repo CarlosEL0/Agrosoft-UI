@@ -19,11 +19,11 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Importaciones extraídas
-import { BackIcon } from '@/src/components/icons/BackIcon';
 import { ImageIcon } from '@/src/components/icons/ImageIcon';
 import { PlantCircleIcon } from '@/src/components/icons/PlantCircleIcon';
 import { PlusIcon } from '@/src/components/icons/PlusIcon';
 import { Campo } from '@/src/components/ui/Campo';
+import { NavBar } from '@/src/components/ui/NavBar';
 import { StepIndicator } from '@/src/components/ui/StepIndicator';
 import { camposPorTipo, tiposReporte } from '@/src/utils/formSchemas';
 
@@ -215,12 +215,10 @@ export default function CrearReporteScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         {/* ── Header ── */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleBack}>
-            <BackIcon />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{titles[paso - 1]}</Text>
-        </View>
+        <NavBar
+          title={titles[paso - 1]}
+          onBack={handleBack}
+        />
 
         {/* ── Indicador de pasos ── */}
         <View style={styles.stepRow}>
@@ -258,22 +256,6 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#f2f4f3',
-  },
-
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-    paddingHorizontal: 22,
-    paddingTop: 16,
-    paddingBottom: 8,
-  },
-  headerTitle: {
-    fontFamily: 'Rubik_500Medium',
-    fontSize: 20,
-    color: Colors.textDark,
-    textTransform: 'capitalize',
   },
 
   // Step indicator
