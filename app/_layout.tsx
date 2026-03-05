@@ -24,6 +24,7 @@ export default function RootLayout() {
       <Stack.Screen name="detalle-reporte" />
       <Stack.Screen name="historial-general" />
       <Stack.Screen name="crear-reporte" />
+      <Stack.Screen name="perfil" />
     </Stack>
   );
 }
