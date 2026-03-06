@@ -18,28 +18,13 @@ import { ImageIcon } from '@/src/components/icons/ImageIcon';
 import { PlantCircleIcon } from '@/src/components/icons/PlantCircleIcon';
 import { TabBar } from '@/src/components/ui/TabBar';
 
-// ── Datos mock ────────────────────────────────────────────────────────────────
-
-const reportesMock = [
-  { id: '1', tipo: 'Riego', etapa: 'Germinacion', fecha: '25/06/24' },
-  { id: '2', tipo: 'Podacion', etapa: 'Cosecha', fecha: '25/06/24' },
-  { id: '3', tipo: 'Riego', etapa: 'Germinacion', fecha: '25/06/24' },
-  { id: '4', tipo: 'Riego', etapa: 'Germinacion', fecha: '25/06/24' },
-  { id: '5', tipo: 'Crecimiento', etapa: 'Germinacion', fecha: '25/06/24' },
-];
-
-const filtros = ['Todos', 'Riego', 'Poda', 'fertiliza'];
+import { useHistorialCultivo } from '@/src/hooks/useHistorialCultivo';
 
 // ── Pantalla ──────────────────────────────────────────────────────────────────
 
 export default function HistorialCultivoScreen() {
   const router = useRouter();
-  const [filtroActivo, setFiltroActivo] = useState('Todos');
-
-  const reportesFiltrados = reportesMock.filter((r) => {
-    if (filtroActivo === 'Todos') return true;
-    return r.tipo.toLowerCase().includes(filtroActivo.toLowerCase());
-  });
+  const { filtros, filtroActivo, setFiltroActivo, reportesFiltrados } = useHistorialCultivo();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>

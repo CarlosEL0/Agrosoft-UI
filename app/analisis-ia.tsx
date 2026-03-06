@@ -5,59 +5,11 @@ import { BackIcon } from '../src/components/icons/BackIcon';
 import { RobotIcon } from '../src/components/icons/RobotIcon';
 import { Colors } from '../src/theme/colors';
 
-// Mock de la respuesta de la API (AnalisisIaResponseDTO)
-const MOCK_API_RESPONSE = {
-    resultadoAnalisis: "Basado en los registros del cultivo y las anomalías reportadas, se detectan signos claros consistentes con una infestación temprana de Mosca Blanca. El alto nivel de humedad reciente ha favorecido su rápida propagación en el envés de las hojas. El cultivo se encuentra sometido a estrés, lo cual podría impactar la próxima etapa de floración si no se toman medidas correctivas inmediatas.",
-    recomendaciones: [
-        {
-            idRecomendacion: '1',
-            titulo: 'Aplicación Tratar con Jabón Potásico',
-            descripcion: 'Preparar una solución de 20ml de jabón potásico por litro de agua. Rociar abundantemente prestando especial atención al envés de las hojas, preferiblemente al atardecer para evitar quemaduras solares.',
-            prioridad: 'alta'
-        },
-        {
-            idRecomendacion: '2',
-            titulo: 'Podas de Aclareo y Ventilación',
-            descripcion: 'Realizar una poda leve en el tercio inferior del cultivo. Esto facilitará la circulación de aire, reduciendo la humedad estancada que favorece la plaga.',
-            prioridad: 'media'
-        },
-        {
-            idRecomendacion: '3',
-            titulo: 'Trampas Cromáticas Amarillas',
-            descripcion: 'Instalar trampas adhesivas amarillas a 20cm por encima del dosel del cultivo para capturar adultos voladores e ir monitoreando la población durante las próximas 2 semanas.',
-            prioridad: 'baja'
-        }
-    ]
-};
+import { useAnalisisIA } from '@/src/hooks/useAnalisisIA';
 
 export default function AnalisisIAScreen() {
     const { idCultivo } = useLocalSearchParams();
-    const [loading, setLoading] = useState(true);
-    const [data, setData] = useState<typeof MOCK_API_RESPONSE | null>(null);
-
-    // Simular la carga de datos del backend
-    useEffect(() => {
-        let isMounted = true;
-        const fetchData = async () => {
-            // Simula retraso de red
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            if (isMounted) {
-                setData(MOCK_API_RESPONSE);
-                setLoading(false);
-            }
-        };
-        fetchData();
-        return () => { isMounted = false; };
-    }, []);
-
-    const getPriorityBadgeColor = (prioridad: string) => {
-        switch (prioridad.toLowerCase()) {
-            case 'alta': return { bg: Colors.danger, text: Colors.surface };
-            case 'media': return { bg: Colors.warning, text: Colors.surface };
-            case 'baja': return { bg: Colors.success, text: Colors.surface };
-            default: return { bg: '#f5f5f5', text: '#9e9e9e' };
-        }
-    };
+    const { data, loading, getPriorityBadgeColor } = useAnalisisIA(idCultivo);
 
     return (
         <SafeAreaView style={styles.safeArea}>

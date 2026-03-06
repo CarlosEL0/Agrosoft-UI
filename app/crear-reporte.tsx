@@ -24,6 +24,7 @@ import { PlantCircleIcon } from '@/src/components/icons/PlantCircleIcon';
 import { PlusIcon } from '@/src/components/icons/PlusIcon';
 import { Campo } from '@/src/components/ui/Campo';
 import { NavBar } from '@/src/components/ui/NavBar';
+import { useCrearReporte } from '@/src/hooks/useCrearReporte';
 import { StepIndicator } from '@/src/components/ui/StepIndicator';
 import { camposPorTipo, tiposReporte } from '@/src/utils/formSchemas';
 
@@ -40,7 +41,6 @@ function Paso1({
   onSelect: (tipo: string) => void;
   onNext: () => void;
 }) {
-  // Grid 2x2 + 1 centrado (igual al diseño Figma)
   const filas = [
     tiposReporte.slice(0, 2),
     tiposReporte.slice(2, 4),
@@ -186,27 +186,19 @@ function Paso2({
 // ── Pantalla principal ────────────────────────────────────────────────────────
 
 export default function CrearReporteScreen() {
-  const router = useRouter();
-  const [paso, setPaso] = useState(1);
-  const [tipoReporte, setTipoReporte] = useState('');
-  const [formData, setFormData] = useState<Record<string, string>>({});
-  const [fotos, setFotos] = useState<null[]>([]);
-
-  const titles = ['Crear reporte', `Reporte de ${tipoReporte.toLowerCase()}`];
-
-  const handleChange = (key: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleBack = () => {
-    if (paso === 1) router.back();
-    else setPaso(1);
-  };
-
-  const handleSubmit = () => {
-    // TODO: conectar con API
-    router.back();
-  };
+  const {
+    paso,
+    setPaso,
+    tipoReporte,
+    setTipoReporte,
+    formData,
+    fotos,
+    titles,
+    handleChange,
+    handleBack,
+    handleSubmit,
+    handleAddFoto,
+  } = useCrearReporte();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -240,7 +232,7 @@ export default function CrearReporteScreen() {
             formData={formData}
             onChange={handleChange}
             fotos={fotos}
-            onAddFoto={() => setFotos((prev) => [...prev, null])}
+            onAddFoto={handleAddFoto}
             onSubmit={handleSubmit}
           />
         )}

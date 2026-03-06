@@ -40,7 +40,7 @@ export function TabBar({ activeTab = 'inicio' }: TabBarProps) {
 
             <TouchableOpacity
                 style={styles.tabItem}
-                onPress={() => router.push('./(tabs)/perfil')}
+                onPress={() => router.push('/(tabs)/perfil')}
                 activeOpacity={0.7}
             >
                 <UserTabIcon active={activeTab === 'perfil'} />
