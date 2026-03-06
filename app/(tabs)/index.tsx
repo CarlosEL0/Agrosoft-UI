@@ -3,13 +3,15 @@
 import { TabBar } from '@/src/components/ui/TabBar';
 import { Colors } from '@/src/theme/colors';
 import { useRouter } from 'expo-router';
-import React from 'react';
+import React, { useRef } from 'react';
 import {
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
+  Animated,
+  Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -18,11 +20,16 @@ import { HomeIcon } from '@/src/components/icons/HomeIcon';
 import { PlantPotIcon } from '@/src/components/icons/PlantPotIcon';
 import { PlantPotSmallIcon } from '@/src/components/icons/PlantPotSmallIcon';
 import { RobotIcon } from '@/src/components/icons/RobotIcon';
+import { useInicio } from '@/src/hooks/useInicio';
 
 // ── Pantalla Home ─────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { cargando, cultivos, cultivoEnRiesgo } = useInicio();
+  const scrollX = useRef(new Animated.Value(0)).current;
+  const CARD_WIDTH = 220;
+  const CARD_SPACING = 12;
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -45,7 +52,7 @@ export default function HomeScreen() {
         {/* ── Card cultivos activos ── */}
         <View style={styles.activosCard}>
           <View style={styles.activosBadge}>
-            <Text style={styles.activosBadgeNum}>3</Text>
+            <Text style={styles.activosBadgeNum}>{cultivos.length}</Text>
           </View>
           <Text style={styles.activosLabel}>Cultivos activos</Text>
         </View>
@@ -53,20 +60,61 @@ export default function HomeScreen() {
         {/* ── Tus cultivos ── */}
         <Text style={styles.sectionTitle}>Tus cultivos</Text>
 
-        {/* Card principal cultivo */}
-        <View style={styles.cultivoCard}>
-          <Text style={styles.cultivoNombre}>Maiz rojo</Text>
-          <PlantPotIcon size={72} />
-          <Text style={styles.cultivoDias}>365 Días</Text>
-          <View style={styles.etapasRow}>
-            <View style={styles.etapaGrayTag}>
-              <Text style={styles.etapaGrayText}>Etapa</Text>
-            </View>
-            <View style={styles.etapaGreenTag}>
-              <Text style={styles.etapaGreenText}>Floración</Text>
-            </View>
-          </View>
-        </View>
+        {/* Lista horizontal de cultivos */}
+        <Animated.ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ gap: CARD_SPACING }}
+          style={{ marginBottom: 20 }}
+          snapToInterval={CARD_WIDTH + CARD_SPACING}
+          decelerationRate="fast"
+          onScroll={Animated.event(
+            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
+            { useNativeDriver: true }
+          )}
+          scrollEventThrottle={16}
+        >
+          {cultivos.map((c, i) => {
+            const inputRange = [
+              (i - 1) * (CARD_WIDTH + CARD_SPACING),
+              i * (CARD_WIDTH + CARD_SPACING),
+              (i + 1) * (CARD_WIDTH + CARD_SPACING),
+            ];
+            const scale = scrollX.interpolate({
+              inputRange,
+              outputRange: [0.92, 1.05, 0.92],
+              extrapolate: 'clamp',
+            });
+            const opacity = scrollX.interpolate({
+              inputRange,
+              outputRange: [0.8, 1, 0.8],
+              extrapolate: 'clamp',
+            });
+            return (
+              <Animated.View key={c.id} style={{ transform: [{ scale }], opacity }}>
+                <TouchableOpacity
+                  style={[styles.cultivoCard, { width: CARD_WIDTH }]}
+                  onPress={() => router.push({ pathname: '/detalle-cultivo', params: { idCultivo: c.id } })}
+                  activeOpacity={0.85}
+                >
+                  <View style={{ alignItems: 'center', width: '100%' }}>
+                    <Text style={styles.cultivoNombre}>{c.nombre}</Text>
+                    <PlantPotIcon size={72} />
+                    <Text style={styles.cultivoDias}>Día {c.dia}</Text>
+                    <View style={styles.etapasRow}>
+                      <View style={styles.etapaGrayTag}>
+                        <Text style={styles.etapaGrayText}>Estado</Text>
+                      </View>
+                      <View style={[styles.etapaGreenTag, c.estado === 'Hecho' && { backgroundColor: Colors.textMedium }]}>
+                        <Text style={styles.etapaGreenText}>{c.estado}</Text>
+                      </View>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              </Animated.View>
+          )})}
+        </Animated.ScrollView>
+
 
         {/* ── ¿Qué deseas hacer? ── */}
         <Text style={styles.actionTitle}>Que deseas hacer?</Text>
@@ -84,26 +132,32 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* ── Card alerta IA ── */}
+        {/* ── Card alerta ── */}
         <View style={styles.alertCard}>
-          {/* Izquierda: planta + nombre */}
           <View style={styles.alertLeft}>
             <PlantPotSmallIcon size={52} />
-            <Text style={styles.alertCultivoNombre}>Lechuga</Text>
+            <Text style={styles.alertCultivoNombre}>{cultivoEnRiesgo ? cultivoEnRiesgo.nombre : 'IA'}</Text>
           </View>
-
-          {/* Divisor vertical */}
           <View style={styles.alertDivider} />
-
-          {/* Derecha: alerta */}
           <View style={styles.alertRight}>
             <Text style={styles.alertTitle}>Cultivo en riesgo</Text>
             <View style={styles.alertMsgRow}>
               <RobotIcon />
-              <Text style={styles.alertMsg}>Tu cultivo carece{'\n'}de riego</Text>
+              <Text style={styles.alertMsg}>
+                {cultivoEnRiesgo
+                  ? `Irregularidades activas: ${cultivoEnRiesgo.irregularidades}\nRiesgo: ${cultivoEnRiesgo.riesgo}`
+                  : 'No hay cultivos en riesgo'}
+              </Text>
             </View>
-            <TouchableOpacity style={styles.alertBtn}>
-              <Text style={styles.alertBtnText}>Ver cultivo</Text>
+            <TouchableOpacity
+              style={styles.alertBtn}
+              onPress={() =>
+                cultivoEnRiesgo
+                  ? router.push({ pathname: '/detalle-cultivo', params: { idCultivo: cultivoEnRiesgo.id } })
+                  : router.push('/(tabs)/cultivos')
+              }
+            >
+              <Text style={styles.alertBtnText}>{cultivoEnRiesgo ? 'Ver cultivo' : 'Ver cultivos'}</Text>
             </TouchableOpacity>
           </View>
         </View>
