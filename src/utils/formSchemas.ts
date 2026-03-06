@@ -1,4 +1,4 @@
-export const tiposReporte = ['Riego', 'Poda', 'Plagas', 'Crecimiento', 'Fertilizacion'];
+export const tiposReporte = ['Riego', 'Poda', 'Irregularidad', 'Crecimiento', 'Fertilizacion', 'Fumigacion'];
 
 export type CampoFormulario = {
     key: string;
@@ -24,7 +24,7 @@ export const camposPorTipo: Record<string, CampoFormulario[]> = {
         { key: 'estado_planta', label: 'Estado planta después', placeholder: 'Selecciona estado', tipo: 'select', opciones: ['Buena', 'Regular', 'Estresada'] },
         { key: 'observaciones', label: 'Observaciones', placeholder: 'Observaciones adicionales' },
     ],
-    Plagas: [
+    Irregularidad: [
         { key: 'tipo_irregularidad', label: 'Tipo de irregularidad', placeholder: 'Selecciona tipo', tipo: 'select', opciones: ['Plaga', 'Enfermedad', 'Crecimiento anormal'] },
         { key: 'nombre_plaga', label: 'Nombre de la plaga', placeholder: 'Ej: pulgón, mosca blanca' },
         { key: 'nivel_dano', label: 'Nivel de daño', placeholder: 'Selecciona nivel', tipo: 'select', opciones: ['Leve', 'Moderado', 'Severo', 'Crítico'] },
@@ -50,9 +50,22 @@ export const camposPorTipo: Record<string, CampoFormulario[]> = {
         { key: 'costo', label: 'Costo ($)', placeholder: 'Ej: 150.00' },
         { key: 'observaciones', label: 'Observaciones', placeholder: 'Observaciones adicionales' },
     ],
+    Fumigacion: [
+        { key: 'nombre_producto', label: 'Nombre del producto', placeholder: 'Ej: Clorpirifos' },
+        { key: 'tipo_producto', label: 'Tipo de producto', placeholder: 'Selecciona tipo', tipo: 'select', opciones: ['Insecticida', 'Fungicida', 'Herbicida', 'Acaricida'] },
+        { key: 'ingrediente_activo', label: 'Ingrediente activo', placeholder: 'Ej: Imidacloprid' },
+        { key: 'dosis', label: 'Dosis aplicada', placeholder: 'Ej: 2.5' },
+        { key: 'unidad_medida', label: 'Unidad de medida', placeholder: 'Selecciona unidad', tipo: 'select', opciones: ['ml/l', 'g/l', 'kg/ha'] },
+        { key: 'total_mezcla_litros', label: 'Total mezcla (litros)', placeholder: 'Ej: 20' },
+        { key: 'metodo_aplicacion', label: 'Método de aplicación', placeholder: 'Selecciona método', tipo: 'select', opciones: ['Aspersión', 'Espolvoreo', 'Inyección'] },
+        { key: 'plaga_objetivo', label: 'Plaga objetivo', placeholder: 'Ej: pulgón, mosca blanca' },
+        { key: 'periodo_seguridad_dias', label: 'Período de seguridad (días)', placeholder: 'Ej: 14' },
+        { key: 'costo', label: 'Costo ($)', placeholder: 'Ej: 200.00' },
+    ],
 };
 
 // ── Tipos y configuraciones para Crear Cultivo ────────────────────────────────
+
 
 export interface Etapa {
     nombre: string;

@@ -1,7 +1,3 @@
-// app/crear-reporte.tsx
-// Flujo de 2 pasos para crear reportes de cultivo
-// Tipos: Riego, Poda, Plagas, Crecimiento, Fertilizacion
-
 import { Colors } from '@/src/theme/colors';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
