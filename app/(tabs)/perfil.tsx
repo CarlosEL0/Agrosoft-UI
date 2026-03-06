@@ -1,9 +1,8 @@
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 import React from 'react';
 import {
-    Platform,
+    ActivityIndicator,
     SafeAreaView,
     ScrollView,
     StatusBar,
@@ -12,25 +11,11 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
+import { usePerfil } from '@/src/hooks/usePerfil';
 
 export default function PerfilScreen() {
     const router = useRouter();
-
-    const handleLogout = async () => {
-        try {
-            if (Platform.OS === 'web') {
-                localStorage.removeItem('userToken');
-                localStorage.removeItem('userId');
-            } else {
-                await SecureStore.deleteItemAsync('userToken');
-                await SecureStore.deleteItemAsync('userId');
-            }
-        } catch (error) {
-            console.error('Error al borrar sesión:', error);
-        } finally {
-            router.replace('/(auth)/login');
-        }
-    };
+    const { profile, loading, handleLogout } = usePerfil();
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -60,11 +45,21 @@ export default function PerfilScreen() {
                         <Ionicons name="person" size={50} color="#ffffff" />
                     </View>
 
-                    <Text style={styles.label}>User:</Text>
-                    <Text style={styles.value}>Cesar Yair Toledo Villarreal</Text>
+                    {loading ? (
+                        <ActivityIndicator size="large" color="#1E201E" />
+                    ) : (
+                        <>
+                            <Text style={styles.label}>Usuario:</Text>
+                            <Text style={styles.value}>
+                                {profile ? `${profile.nombre} ${profile.apellidos}` : 'No disponible'}
+                            </Text>
 
-                    <Text style={[styles.label, { marginTop: 16 }]}>Correo</Text>
-                    <Text style={styles.value}>Ctoledovi@gmail.com</Text>
+                            <Text style={[styles.label, { marginTop: 16 }]}>Correo</Text>
+                            <Text style={styles.value}>
+                                {profile?.correoElectronico || 'No disponible'}
+                            </Text>
+                        </>
+                    )}
                 </View>
 
                 {/* ── Logout Button ── */}
