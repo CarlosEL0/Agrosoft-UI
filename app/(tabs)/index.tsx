@@ -21,12 +21,14 @@ import { PlantPotIcon } from '@/src/components/icons/PlantPotIcon';
 import { PlantPotSmallIcon } from '@/src/components/icons/PlantPotSmallIcon';
 import { RobotIcon } from '@/src/components/icons/RobotIcon';
 import { useInicio } from '@/src/hooks/useInicio';
+import { useNotificaciones } from '@/src/hooks/useNotificaciones';
 
 // ── Pantalla Home ─────────────────────────────────────────────────────────────
 
 export default function HomeScreen() {
   const router = useRouter();
   const { cargando, cultivos, cultivoEnRiesgo } = useInicio();
+  const { unreadCount } = useNotificaciones();
   const scrollX = useRef(new Animated.Value(0)).current;
   const CARD_WIDTH = 220;
   const CARD_SPACING = 12;
@@ -44,8 +46,15 @@ export default function HomeScreen() {
             <HomeIcon />
             <Text style={styles.headerTitle}>Inicio</Text>
           </View>
-          <TouchableOpacity>
-            <BellIcon />
+          <TouchableOpacity onPress={() => router.push('/notificaciones')}>
+            <View>
+              <BellIcon />
+              {unreadCount > 0 && (
+                <View style={{ position: 'absolute', top: -4, right: -4, backgroundColor: Colors.primary, borderRadius: 8, paddingHorizontal: 6, paddingVertical: 2 }}>
+                  <Text style={{ color: '#fff', fontSize: 10, fontFamily: 'Rubik_600SemiBold' }}>{unreadCount}</Text>
+                </View>
+              )}
+            </View>
           </TouchableOpacity>
         </View>
 
