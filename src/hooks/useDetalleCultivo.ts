@@ -12,11 +12,7 @@ const CULTIVO_DEFAULT = {
     salud: '...',
     faseActual: '...',
     riesgo: '...',
-    ia: {
-        riego: '...',
-        nutricion: '...',
-        plagas: '...',
-    },
+    resumenIA: 'Consultando motor inteligente...',
 };
 
 export function useDetalleCultivo(idCultivo?: string) {

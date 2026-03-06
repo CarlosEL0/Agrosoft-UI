@@ -229,21 +229,56 @@ export class CultivoService {
             }
         }
 
-        // 5. Retornar en formato compatible con la UI
+        // 5. Calcular Salud y Riesgo a partir de irregularidades activas del cultivo
+        //    GET /irregularidades/cultivo/{id}?estado=activa (sin modificar el backend)
+        let salud = 'Buena';
+        let riesgo = 'Bajo';
+        try {
+            const resIrreg = await api.get(`/irregularidades/cultivo/${idCultivo}`, {
+                params: { estado: 'activa' }
+            });
+            const irregActivas: any[] = resIrreg.data?.data || [];
+            const cantidad = irregActivas.length;
+
+            if (cantidad === 0) {
+                salud = 'Buena';
+                riesgo = 'Bajo';
+            } else if (cantidad <= 2) {
+                salud = 'Regular';
+                riesgo = 'Moderado';
+            } else {
+                salud = 'Mala';
+                riesgo = 'Alto';
+            }
+        } catch {
+            // Si falla la petición, mantenemos los valores por defecto
+        }
+
+        // 6. Llamar a la IA para resumen de cuidados recientes (últimos 7 días)
+        //    POST /ai/resumen-cuidados — sin modificar el backend
+        let resumenIA = 'Analizando los registros del cultivo...';
+        try {
+            const resIA = await api.post('/ai/resumen-cuidados', {
+                idCultivo,
+                diasRetroceso: 7,
+                preguntaAdicional: null,
+            });
+            resumenIA = resIA.data?.data?.resultadoAnalisis || resumenIA;
+        } catch {
+            resumenIA = 'No se pudo obtener el análisis de IA en este momento.';
+        }
+
+        // 7. Retornar en formato compatible con la UI
         return {
             nombre: cultivo?.nombreCultivo || 'Cultivo',
             ciclo: cicloNombre,
             diaActual: Math.max(0, diaActual),
             diaTotal: Math.max(1, diaTotal),
             progreso,
-            salud: 'Buena', // TODO: conectar con lógica real cuando exista
+            salud,
             faseActual: etapaActual,
-            riesgo: 'Bajo',  // TODO: conectar con lógica real cuando exista
-            ia: {
-                riego: 'Óptimo',
-                nutricion: 'Adecuada',
-                plagas: 'Sin indicios',
-            },
+            riesgo,
+            resumenIA,
         };
     }
 }

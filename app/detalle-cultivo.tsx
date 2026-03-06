@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Importaciones extraídas
 import { AlertCircleIcon } from '@/src/components/icons/AlertCircleIcon';
+import { AlertTriangleIcon } from '@/src/components/icons/AlertTriangleIcon';
 import { BackIcon } from '@/src/components/icons/BackIcon';
 import { CheckCircleIcon } from '@/src/components/icons/CheckCircleIcon';
 import { HistoryIcon } from '@/src/components/icons/HistoryIcon';
@@ -114,23 +115,49 @@ export default function DetalleCultivoScreen() {
         </View>
 
         {/* ── Cards de estado ── */}
-        <View style={styles.estadosRow}>
-          <View style={styles.estadoCard}>
-            <Text style={styles.estadoLabel}>Salud</Text>
-            <CheckCircleIcon size={32} />
-            <Text style={styles.estadoValue}>{cultivo.salud}</Text>
-          </View>
-          <View style={styles.estadoCard}>
-            <Text style={styles.estadoLabel}>Fase actual</Text>
-            <TreeCircleIcon size={32} />
-            <Text style={styles.estadoValue}>{cultivo.faseActual}</Text>
-          </View>
-          <View style={styles.estadoCard}>
-            <Text style={styles.estadoLabel}>Riesgo actual</Text>
-            <AlertCircleIcon size={32} />
-            <Text style={styles.estadoValue}>{cultivo.riesgo}</Text>
-          </View>
-        </View>
+        {(() => {
+          // Devuelve icono y color según el valor del estado
+          const getEstadoVisual = (valor: string): { icon: React.ReactNode; color: string } => {
+            const v = valor.toLowerCase();
+            if (v === 'buena' || v === 'bajo') {
+              return { icon: <CheckCircleIcon size={32} color={Colors.buttonBg} />, color: Colors.buttonBg };
+            } else if (v === 'regular' || v === 'moderado') {
+              return { icon: <AlertTriangleIcon color={Colors.warning} />, color: Colors.warning };
+            } else if (v === 'mala' || v === 'alto') {
+              return { icon: <AlertCircleIcon size={32} color={Colors.danger} />, color: Colors.danger };
+            }
+            // fallback (cargando, sin etapa, etc.)
+            return { icon: <TreeCircleIcon size={32} />, color: Colors.textMedium };
+          };
+
+          const saludVisual = getEstadoVisual(cultivo.salud);
+          const riesgoVisual = getEstadoVisual(cultivo.riesgo);
+
+          return (
+            <View style={styles.estadosRow}>
+              <View style={styles.estadoCard}>
+                <Text style={styles.estadoLabel}>Salud</Text>
+                {saludVisual.icon}
+                <Text style={[styles.estadoValue, { color: saludVisual.color, fontFamily: 'Rubik_500Medium' }]}>
+                  {cultivo.salud}
+                </Text>
+              </View>
+              <View style={styles.estadoCard}>
+                <Text style={styles.estadoLabel}>Fase actual</Text>
+                <TreeCircleIcon size={32} />
+                <Text style={[styles.estadoValue, { fontFamily: 'Rubik_500Medium' }]}>{cultivo.faseActual}</Text>
+              </View>
+              <View style={styles.estadoCard}>
+                <Text style={styles.estadoLabel}>Riesgo actual</Text>
+                {riesgoVisual.icon}
+                <Text style={[styles.estadoValue, { color: riesgoVisual.color, fontFamily: 'Rubik_500Medium' }]}>
+                  {cultivo.riesgo}
+                </Text>
+              </View>
+            </View>
+          );
+        })()}
+
 
         {/* ── Card IA ── */}
         <View style={styles.iaCard}>
@@ -141,11 +168,9 @@ export default function DetalleCultivoScreen() {
             </View>
           </View>
 
-          <View style={styles.iaItems}>
-            <Text style={styles.iaItem}>💧 <Text style={styles.iaItemBold}>Riego:</Text> {cultivo.ia.riego} ✓</Text>
-            <Text style={styles.iaItem}>🌱 <Text style={styles.iaItemBold}>Nutrición:</Text> {cultivo.ia.nutricion} ✓</Text>
-            <Text style={styles.iaItem}>🛡️ <Text style={styles.iaItemBold}>Plagas:</Text> {cultivo.ia.plagas} ✓</Text>
-          </View>
+          <Text style={styles.iaResumen}>
+            {cultivo.resumenIA}
+          </Text>
         </View>
 
       </ScrollView>
@@ -347,5 +372,11 @@ const styles = StyleSheet.create({
   },
   iaItemBold: {
     fontFamily: 'Rubik_600SemiBold',
+  },
+  iaResumen: {
+    fontFamily: 'Rubik_400Regular',
+    fontSize: 14,
+    color: Colors.textDark,
+    lineHeight: 22,
   },
 });
