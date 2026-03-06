@@ -106,7 +106,7 @@ export default function DetalleCultivoScreen() {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={[styles.accionBtnFull, styles.accionBtnDark]} onPress={() => router.push('./crear-reporte')}>
+          <TouchableOpacity style={[styles.accionBtnFull, styles.accionBtnDark]} onPress={() => router.push({ pathname: '/crear-reporte', params: { idCultivo: idCultivo ?? '', etapaActual: cultivo.faseActual } })}>
             <View style={styles.accionBtnContentCenter}>
               <PlusIcon />
               <Text style={styles.accionBtnTextLight}>Crear reporte</Text>

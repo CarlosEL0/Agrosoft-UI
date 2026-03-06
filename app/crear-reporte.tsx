@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Dimensions,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -89,14 +90,18 @@ function Paso2({
   onChange,
   fotos,
   onAddFoto,
+  onRemoveFoto,
   onSubmit,
+  etapaActual,
 }: {
   tipo: string;
   formData: Record<string, string>;
   onChange: (key: string, value: string) => void;
-  fotos: null[];
+  fotos: string[];
   onAddFoto: () => void;
+  onRemoveFoto: (index: number) => void;
   onSubmit: () => void;
+  etapaActual: string;
 }) {
   const campos = camposPorTipo[tipo] || [];
 
@@ -120,26 +125,12 @@ function Paso2({
           />
         </View>
 
+        {/* Etapa detectada automáticamente (solo lectura) */}
         <View style={styles.fieldGroup}>
           <Text style={styles.fieldLabel}>Etapa del cultivo</Text>
-          <View style={styles.opcionesRow}>
-            {['Germinacion', 'Plántula', 'Crecimiento', 'Floración', 'Cosecha'].map((etapa) => (
-              <TouchableOpacity
-                key={etapa}
-                style={[
-                  styles.opcionPill,
-                  formData['etapa'] === etapa && styles.opcionPillActive,
-                ]}
-                onPress={() => onChange('etapa', etapa)}
-              >
-                <Text style={[
-                  styles.opcionText,
-                  formData['etapa'] === etapa && styles.opcionTextActive,
-                ]}>
-                  {etapa}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.etapaChip}>
+            <PlantCircleIcon size={20} />
+            <Text style={styles.etapaChipText}>{etapaActual}</Text>
           </View>
         </View>
 
@@ -158,12 +149,14 @@ function Paso2({
       <View style={styles.pasoCard}>
         <Text style={styles.pasoQuestion}>Fotos del reporte</Text>
         <View style={styles.fotosGrid}>
-          {fotos.map((_, i) => (
+          {fotos.map((uri, i) => (
             <View key={i} style={styles.fotoPlaceholder}>
-              <ImageIcon />
+              <Image source={{ uri }} style={styles.fotoImagen} />
+              <TouchableOpacity style={styles.fotoBorrar} onPress={() => onRemoveFoto(i)}>
+                <Text style={styles.fotoBorrarText}>✕</Text>
+              </TouchableOpacity>
             </View>
           ))}
-          {/* Botón agregar foto */}
           <TouchableOpacity style={styles.fotoAdd} onPress={onAddFoto}>
             <PlusIcon />
             <Text style={styles.fotoAddText}>Agregar foto</Text>
@@ -194,6 +187,8 @@ export default function CrearReporteScreen() {
     handleBack,
     handleSubmit,
     handleAddFoto,
+    handleRemoveFoto,
+    etapaActual,
   } = useCrearReporte();
 
   return (
@@ -229,7 +224,9 @@ export default function CrearReporteScreen() {
             onChange={handleChange}
             fotos={fotos}
             onAddFoto={handleAddFoto}
+            onRemoveFoto={handleRemoveFoto}
             onSubmit={handleSubmit}
+            etapaActual={etapaActual}
           />
         )}
 
@@ -380,6 +377,42 @@ const styles = StyleSheet.create({
     fontFamily: 'Rubik_400Regular',
     fontSize: 12,
     color: Colors.textLight,
+  },
+  fotoImagen: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+  },
+  fotoBorrar: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fotoBorrarText: {
+    color: '#fff',
+    fontSize: 12,
+    fontFamily: 'Rubik_500Medium',
+  },
+  etapaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.primary + '18',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    alignSelf: 'flex-start',
+  },
+  etapaChipText: {
+    fontFamily: 'Rubik_500Medium',
+    fontSize: 14,
+    color: Colors.primary,
   },
 
   // Botón
