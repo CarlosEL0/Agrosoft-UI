@@ -300,6 +300,7 @@ export class CultivoService {
             faseActual: etapaActual,
             riesgo,
             resumenIA,
+            idCiclo: faseActiva?.idCiclo || null,
         };
     }
 }

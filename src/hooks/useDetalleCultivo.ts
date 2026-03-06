@@ -13,6 +13,7 @@ const CULTIVO_DEFAULT = {
     faseActual: '...',
     riesgo: '...',
     resumenIA: 'Consultando motor inteligente...',
+    idCiclo: null as string | null,
 };
 
 export function useDetalleCultivo(idCultivo?: string) {

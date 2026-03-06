@@ -2,16 +2,20 @@
 
 import { Colors } from '@/src/theme/colors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Platform } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 
 // Importaciones extraídas
 import { AlertCircleIcon } from '@/src/components/icons/AlertCircleIcon';
@@ -24,6 +28,7 @@ import { PlusIcon } from '@/src/components/icons/PlusIcon';
 import { RobotIcon } from '@/src/components/icons/RobotIcon';
 import { TreeCircleIcon } from '@/src/components/icons/TreeCircleIcon';
 import { TabBar } from '@/src/components/ui/TabBar';
+import { generarReporteCosechaIA } from '@/src/services/reporteService';
 
 const { width } = Dimensions.get('window');
 
@@ -46,6 +51,32 @@ export default function DetalleCultivoScreen() {
   const router = useRouter();
   const { idCultivo } = useLocalSearchParams<{ idCultivo: string }>();
   const { cultivo, cargando } = useDetalleCultivo(idCultivo);
+  const [fechaCosecha, setFechaCosecha] = useState('');
+  const [cantidadCosechada, setCantidadCosechada] = useState('');
+  const [calidadCultivo, setCalidadCultivo] = useState('');
+  const [enviando, setEnviando] = useState(false);
+  const [reporteCosecha, setReporteCosecha] = useState<any | null>(null);
+
+  // Cargar reporte persistido localmente si existe
+  useEffect(() => {
+    const loadPersisted = async () => {
+      if (!cultivo?.idCiclo) return;
+      const key = `harvestReport:${cultivo.idCiclo}`;
+      try {
+        let json: string | null = null;
+        if (Platform.OS === 'web') {
+          json = localStorage.getItem(key);
+        } else {
+          json = await SecureStore.getItemAsync(key);
+        }
+        if (json) {
+          const parsed = JSON.parse(json);
+          setReporteCosecha(parsed);
+        }
+      } catch {}
+    };
+    loadPersisted();
+  }, [cultivo?.idCiclo]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -116,6 +147,120 @@ export default function DetalleCultivoScreen() {
             </View>
           </TouchableOpacity>
         </View>
+
+        {((cultivo.progreso >= 100 || cultivo.diaActual >= cultivo.diaTotal) && cultivo?.idCiclo && !reporteCosecha) && (
+          <View style={styles.cierreCard}>
+            <Text style={styles.cierreTitle}>Cierre del cultivo</Text>
+            <Text style={styles.cierreSubtitle}>Genera el reporte de cosecha con IA</Text>
+            <View style={{ gap: 10 }}>
+              <Text style={styles.cierreLabel}>Fecha de cosecha (DD/MM/AAAA)</Text>
+              <TextInput
+                style={styles.cierreInput}
+                placeholder="DD/MM/AAAA"
+                placeholderTextColor={Colors.textLight}
+                value={fechaCosecha}
+                onChangeText={setFechaCosecha}
+              />
+              <Text style={styles.cierreLabel}>Cantidad cosechada (kg)</Text>
+              <TextInput
+                style={styles.cierreInput}
+                placeholder="0.00"
+                placeholderTextColor={Colors.textLight}
+                keyboardType="numeric"
+                value={cantidadCosechada}
+                onChangeText={setCantidadCosechada}
+              />
+              <Text style={styles.cierreLabel}>Calidad del cultivo</Text>
+              <TextInput
+                style={styles.cierreInput}
+                placeholder="Alta / Media / Baja"
+                placeholderTextColor={Colors.textLight}
+                value={calidadCultivo}
+                onChangeText={setCalidadCultivo}
+              />
+              <TouchableOpacity
+                style={[styles.cierreBtn, (!fechaCosecha || !cantidadCosechada || !calidadCultivo || enviando) && { opacity: 0.6 }]}
+                disabled={!fechaCosecha || !cantidadCosechada || !calidadCultivo || enviando}
+                onPress={async () => {
+                  try {
+                    setEnviando(true);
+                    if (!cultivo.idCiclo) throw new Error('Falta id del ciclo');
+                    const dataResp = await generarReporteCosechaIA({
+                      idCultivo: String(idCultivo || ''),
+                      idCiclo: cultivo.idCiclo as string,
+                      fechaCosecha,
+                      cantidadCosechada,
+                      calidadCultivo,
+                    });
+                    setReporteCosecha(dataResp || null);
+                    // Persistir localmente para mostrarlo en próximas visitas
+                    try {
+                      const key = `harvestReport:${cultivo.idCiclo}`;
+                      const json = JSON.stringify(dataResp || {});
+                      if (Platform.OS === 'web') {
+                        localStorage.setItem(key, json);
+                      } else {
+                        await SecureStore.setItemAsync(key, json);
+                      }
+                    } catch {}
+                    Alert.alert('Éxito', 'Reporte de cosecha generado');
+                  } catch (e: any) {
+                    const msg = e?.response?.data?.message || e?.message || 'No se pudo generar el reporte';
+                    Alert.alert('Error', msg);
+                  } finally {
+                    setEnviando(false);
+                  }
+                }}
+              >
+                <Text style={styles.cierreBtnText}>{enviando ? 'Generando...' : 'Generar reporte IA'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {reporteCosecha && (
+          <View style={styles.cosechaCard}>
+            <Text style={styles.cierreTitle}>Reporte de cosecha</Text>
+            <View style={styles.cosechaRow}>
+              <Text style={styles.cosechaLabel}>Fecha</Text>
+              <Text style={styles.cosechaValue}>{String(reporteCosecha.fechaCosecha || '')}</Text>
+            </View>
+            <View style={styles.cosechaRow}>
+              <Text style={styles.cosechaLabel}>Cantidad</Text>
+              <Text style={styles.cosechaValue}>{String(reporteCosecha.cantidadCosechada || '')} kg</Text>
+            </View>
+            <View style={styles.cosechaRow}>
+              <Text style={styles.cosechaLabel}>Calidad</Text>
+              <Text style={styles.cosechaValue}>{String(reporteCosecha.calidadCultivo || '')}</Text>
+            </View>
+            <View style={styles.cosechaRow}>
+              <Text style={styles.cosechaLabel}>Rendimiento esperado</Text>
+              <Text style={styles.cosechaValue}>{String(reporteCosecha.rendimientoEsperado ?? '')}</Text>
+            </View>
+            <View style={styles.cosechaRow}>
+              <Text style={styles.cosechaLabel}>Desviación rendimiento</Text>
+              <Text style={styles.cosechaValue}>{String(reporteCosecha.desviacionRendimiento ?? '')}</Text>
+            </View>
+            <View style={styles.cosechaRow}>
+              <Text style={styles.cosechaLabel}>Eficiencia riego</Text>
+              <Text style={styles.cosechaValue}>{String(reporteCosecha.eficienciaRiego ?? '')}</Text>
+            </View>
+            <View style={styles.cosechaRow}>
+              <Text style={styles.cosechaLabel}>Costo total</Text>
+              <Text style={styles.cosechaValue}>{String(reporteCosecha.costoTotal ?? '')}</Text>
+            </View>
+            <View style={styles.cosechaRow}>
+              <Text style={styles.cosechaLabel}>Costo por kg</Text>
+              <Text style={styles.cosechaValue}>{String(reporteCosecha.costoPorKg ?? '')}</Text>
+            </View>
+            <Text style={styles.cierreTitle}>Resumen del ciclo</Text>
+            <Text style={styles.cosechaText}>{String(reporteCosecha.resumenCiclo || '')}</Text>
+            <Text style={styles.cierreTitle}>Factores de éxito</Text>
+            <Text style={styles.cosechaText}>{String(reporteCosecha.factoresExito || '')}</Text>
+            <Text style={styles.cierreTitle}>Áreas de mejora</Text>
+            <Text style={styles.cosechaText}>{String(reporteCosecha.areasMejora || '')}</Text>
+          </View>
+        )}
 
         {/* ── Cards de estado ── */}
         {(() => {
@@ -377,6 +522,75 @@ const styles = StyleSheet.create({
     fontFamily: 'Rubik_600SemiBold',
   },
   iaResumen: {
+    fontFamily: 'Rubik_400Regular',
+    fontSize: 14,
+    color: Colors.textDark,
+    lineHeight: 22,
+  },
+  cierreCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 18,
+    gap: 10,
+  },
+  cierreTitle: {
+    fontFamily: 'Rubik_600SemiBold',
+    fontSize: 16,
+    color: Colors.textDark,
+  },
+  cierreSubtitle: {
+    fontFamily: 'Rubik_400Regular',
+    fontSize: 12,
+    color: Colors.textMedium,
+  },
+  cierreLabel: {
+    fontFamily: 'Rubik_500Medium',
+    fontSize: 13,
+    color: Colors.textDark,
+  },
+  cierreInput: {
+    backgroundColor: '#f8f8f8',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontFamily: 'Rubik_400Regular',
+    fontSize: 14,
+    color: Colors.textDark,
+  },
+  cierreBtn: {
+    marginTop: 6,
+    backgroundColor: Colors.primary,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  cierreBtnText: {
+    fontFamily: 'Rubik_500Medium',
+    fontSize: 15,
+    color: '#fff',
+  },
+  cosechaCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 18,
+    gap: 8,
+  },
+  cosechaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 4,
+  },
+  cosechaLabel: {
+    fontFamily: 'Rubik_500Medium',
+    fontSize: 13,
+    color: Colors.textMedium,
+  },
+  cosechaValue: {
+    fontFamily: 'Rubik_400Regular',
+    fontSize: 13,
+    color: Colors.textDark,
+  },
+  cosechaText: {
     fontFamily: 'Rubik_400Regular',
     fontSize: 14,
     color: Colors.textDark,

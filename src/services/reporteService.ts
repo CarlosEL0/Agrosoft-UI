@@ -346,3 +346,35 @@ export async function getEtapaPorId(idEtapa: string) {
 export async function getEventoPorId(idEvento: string) {
   return api.get(`/eventos/${idEvento}`);
 }
+
+export async function generarReporteCosechaIA(params: {
+  idCultivo: string;
+  idCiclo: string;
+  fechaCosecha?: string;
+  cantidadCosechada: string | number;
+  calidadCultivo: string;
+}) {
+  const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+  if (!params.idCultivo || !uuidRe.test(params.idCultivo)) {
+    throw new Error('idCultivo inválido');
+  }
+  if (!params.idCiclo || !uuidRe.test(params.idCiclo)) {
+    throw new Error('idCiclo inválido');
+  }
+  const fechaISO =
+    params.fechaCosecha && params.fechaCosecha.includes('/')
+      ? parseFechaDMYToISO(params.fechaCosecha) || todayISO()
+      : params.fechaCosecha || todayISO();
+  const payload = {
+    idCiclo: params.idCiclo,
+    idCultivo: params.idCultivo,
+    fechaCosecha: fechaISO,
+    cantidadCosechada:
+      typeof params.cantidadCosechada === 'string'
+        ? parseFloat(params.cantidadCosechada)
+        : params.cantidadCosechada,
+    calidadCultivo: params.calidadCultivo,
+  };
+  const res = await api.post('/cosechas/reporte-ia', payload);
+  return res.data?.data;
+}
