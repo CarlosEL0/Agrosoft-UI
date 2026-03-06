@@ -21,22 +21,13 @@ import { TabBar } from '@/src/components/ui/TabBar';
 
 const { width } = Dimensions.get('window');
 
-// ── Pantalla ──────────────────────────────────────────────────────────────────
+import { useDetalleReporte } from '@/src/hooks/useDetalleReporte';
 
+// ── Pantalla ──────────────────────────────────────────────────────────────────
 
 export default function DetalleReporteScreen() {
   const router = useRouter();
-
-  // Mock data — luego vendrá de la API
-  const reporte = {
-    tipo: 'Riego',
-    etapa: 'Germinacion',
-    fecha: '25/06/24',
-    detalles: [
-      { label: 'Humedad del suelo', value: 'Baja' },
-    ],
-    fotos: [null, null], // placeholders
-  };
+  const { reporte } = useDetalleReporte();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
