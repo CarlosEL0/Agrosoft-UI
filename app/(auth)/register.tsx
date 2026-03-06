@@ -1,8 +1,7 @@
 import { Colors } from '@/src/theme/colors';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -13,7 +12,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { api } from '@/src/api/axiosConfig';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Importaciones extraídas
@@ -23,64 +21,26 @@ import { MailIcon } from '@/src/components/icons/MailIcon';
 import { UserIcon } from '@/src/components/icons/UserIcon';
 import { InputField } from '@/src/components/ui/InputField';
 import { TopoPattern } from '@/src/components/ui/TopoPattern';
+import { useRegister } from '@/src/hooks/useRegister';
 
 // ── Pantalla Register ─────────────────────────────────────────────────────────
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const [nombre, setNombre] = useState('');
-  const [apellidos, setApellidos] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-
-  const handleRegister = async () => {
-    if (!nombre || !apellidos || !email || !password) {
-      Alert.alert('Error', 'Por favor llena todos los campos');
-      return;
-    }
-
-    try {
-      const payload = {
-        nombre: nombre,
-        apellido: apellidos,
-        correoElectronico: email,
-        password: password
-      };
-
-      const response = await api.post('/users', payload);
-
-      if (response.status === 201 || response.status === 200) {
-        // Guardamos el ID del usuario recién creado
-        const usuarioId = response.data?.data?.id;
-        if (usuarioId) {
-          if (Platform.OS === 'web') {
-            localStorage.setItem('userId', usuarioId);
-          } else {
-            const SecureStore = require('expo-secure-store');
-            await SecureStore.setItemAsync('userId', usuarioId);
-          }
-        }
-
-        if (Platform.OS === 'web') {
-          window.alert('Éxito: Te has registrado correctamente. Ahora puedes iniciar sesión.');
-          router.replace('/login');
-        } else {
-          Alert.alert('Éxito', 'Te has registrado correctamente. Ahora puedes iniciar sesión.', [
-            { text: 'OK', onPress: () => router.replace('/login') }
-          ]);
-        }
-      } else {
-        const errorMsg = response.data?.message || 'Hubo un problema al registrarte';
-        if (Platform.OS === 'web') window.alert('Error: ' + errorMsg);
-        else Alert.alert('Error', errorMsg);
-      }
-    } catch (error: any) {
-      console.error('Error al registrar usuario:', error);
-      const errorMsg = error.response?.data?.message || 'Hubo un problema con la conexión al servidor.';
-      Alert.alert('Error', errorMsg);
-    }
-  };
+  const {
+    nombre,
+    setNombre,
+    apellidos,
+    setApellidos,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    showPassword,
+    toggleShowPassword,
+    cargando,
+    handleRegister,
+  } = useRegister();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -137,14 +97,14 @@ export default function RegisterScreen() {
               icon={<LockIcon />}
               secureTextEntry={!showPassword}
               rightElement={
-                <Pressable onPress={() => setShowPassword(!showPassword)} hitSlop={8}>
+                <Pressable onPress={toggleShowPassword} hitSlop={8}>
                   <EyeIcon off={!showPassword} />
                 </Pressable>
               }
             />
 
-            <TouchableOpacity style={styles.button} onPress={handleRegister} activeOpacity={0.85}>
-              <Text style={styles.buttonText}>Crear cuenta</Text>
+            <TouchableOpacity style={[styles.button, cargando && { opacity: 0.7 }]} onPress={handleRegister} activeOpacity={0.85} disabled={cargando}>
+              <Text style={styles.buttonText}>{cargando ? 'Registrando...' : 'Crear cuenta'}</Text>
             </TouchableOpacity>
 
             <View style={styles.footer}>
