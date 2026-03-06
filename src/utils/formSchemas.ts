@@ -68,16 +68,64 @@ export interface CultivoFormData {
     tamanoTerreno: string;
     cantidadSemillas: string;
     fechaSiembra: string;
+    nombreCiclo: string;
+    fechaInicioCiclo: string;
+    fechaFinCiclo: string;
     etapas: Etapa[];
     nombrePersonalizado: string;
 }
 
 export const tiposCultivo = ['Maiz', 'Frijol', 'Lechuga', 'Otro'];
 
-export const etapasDefault: Etapa[] = [
-    { nombre: 'Germinación', inicio: '25/06/24', fin: '25/06/24', dias: 10 },
-    { nombre: 'Plántula', inicio: '25/06/24', fin: '25/06/24', dias: 10 },
-    { nombre: 'Crecimiento', inicio: '25/06/24', fin: '25/06/24', dias: 10 },
-    { nombre: 'Floración', inicio: '25/06/24', fin: '25/06/24', dias: 10 },
-    { nombre: 'Cosecha', inicio: '25/06/24', fin: '25/06/24', dias: 10 },
-];
+export function generarEtapasPreview(fechaSiembraInput: string): Etapa[] {
+    let baseDate = new Date();
+    if (fechaSiembraInput) {
+        const parts = fechaSiembraInput.split('/');
+        if (parts.length === 3) {
+            let y = parts[2];
+            if (y.length === 2) y = '20' + y;
+            baseDate = new Date(parseInt(y), parseInt(parts[1]) - 1, parseInt(parts[0]));
+        }
+    }
+
+    const formatearFecha = (d: Date) => {
+        const dia = String(d.getDate()).padStart(2, '0');
+        const mes = String(d.getMonth() + 1).padStart(2, '0');
+        const anio = String(d.getFullYear()).slice(-2);
+        return `${dia}/${mes}/${anio}`;
+    };
+
+    const sumarDias = (d: Date, dias: number) => {
+        const nueva = new Date(d);
+        nueva.setDate(nueva.getDate() + dias);
+        return nueva;
+    };
+
+    const duraciones = [
+        { nombre: 'Germinación', dias: 10 },
+        { nombre: 'Plántula', dias: 10 },
+        { nombre: 'Crecimiento', dias: 20 },
+        { nombre: 'Floración', dias: 20 },
+        { nombre: 'Cosecha', dias: 15 },
+    ];
+
+    let fechaActual = baseDate;
+    const etapas: Etapa[] = [];
+
+    for (const etapa of duraciones) {
+        const fechaInicio = formatearFecha(fechaActual);
+        const fechaFinObj = sumarDias(fechaActual, etapa.dias);
+        const fechaFin = formatearFecha(fechaFinObj);
+
+        etapas.push({
+            nombre: etapa.nombre,
+            inicio: fechaInicio,
+            fin: fechaFin,
+            dias: etapa.dias
+        });
+
+        fechaActual = fechaFinObj;
+    }
+
+    return etapas;
+}

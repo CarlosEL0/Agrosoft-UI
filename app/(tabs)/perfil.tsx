@@ -1,7 +1,9 @@
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import React from 'react';
 import {
+    Platform,
     SafeAreaView,
     ScrollView,
     StatusBar,
@@ -14,8 +16,20 @@ import {
 export default function PerfilScreen() {
     const router = useRouter();
 
-    const handleLogout = () => {
-        router.replace('/(auth)/login');
+    const handleLogout = async () => {
+        try {
+            if (Platform.OS === 'web') {
+                localStorage.removeItem('userToken');
+                localStorage.removeItem('userId');
+            } else {
+                await SecureStore.deleteItemAsync('userToken');
+                await SecureStore.deleteItemAsync('userId');
+            }
+        } catch (error) {
+            console.error('Error al borrar sesión:', error);
+        } finally {
+            router.replace('/(auth)/login');
+        }
     };
 
     return (

@@ -1,8 +1,6 @@
-// app/(tabs)/cultivos.tsx
-
 import { Colors } from '@/src/theme/colors';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useState, useCallback } from 'react';
 import {
   Dimensions,
   ScrollView,
@@ -11,39 +9,83 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-// Importaciones extraídas
+import * as SecureStore from 'expo-secure-store';
 import { PlantPotIcon } from '@/src/components/icons/PlantPotIcon';
 import { PlusIcon } from '@/src/components/icons/PlusIcon';
 import { SearchIcon } from '@/src/components/icons/SearchIcon';
 import { TreeIcon } from '@/src/components/icons/TreeIcon';
 import { TabBar } from '@/src/components/ui/TabBar';
+import { api } from '@/src/api/axiosConfig';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = (width - 22 * 2 - 12) / 2;
 
-// ── Datos mock ───────────────────────────────────────────────────────────────
-
-
-const cultivosMock = [
-  { id: '1', nombre: 'Maiz rojo', dia: 25, estado: 'Activo' },
-  { id: '2', nombre: 'Frijol bayo', dia: 255, estado: 'Hecho' },
-  { id: '3', nombre: 'Lechuga', dia: 255, estado: 'Activo' },
-  { id: '4', nombre: 'Tomate', dia: 14, estado: 'Activo' },
-];
-
 const filtros = ['Todos', 'Activos', 'Hechos'];
-
-// ── Pantalla ─────────────────────────────────────────────────────────────────
 
 export default function CultivosScreen() {
   const router = useRouter();
   const [filtroActivo, setFiltroActivo] = useState('Todos');
   const [busqueda, setBusqueda] = useState('');
 
-  const cultivosFiltrados = cultivosMock.filter((c) => {
+  const [cultivos, setCultivos] = useState<any[]>([]);
+  const [cargando, setCargando] = useState(true);
+
+  // Función para cargar cultivos desde el backend
+  const fetchCultivos = async () => {
+    try {
+      setCargando(true);
+      // Extraer el ID del usuario logueado
+      let userId: string | null = null;
+      if (Platform.OS === 'web') {
+        userId = localStorage.getItem('userId');
+      } else {
+        userId = await SecureStore.getItemAsync('userId');
+      }
+
+      const response = await api.get('/cultivos');
+      const data = response.data?.data || [];
+
+      // Filtramos solo los cultivos de este usuario
+      const misCultivos = data.filter((c: any) => c.idUsuario === userId);
+
+      // Transformamos los datos al formato que espera la vista
+      const cultivosuI = misCultivos.map((c: any) => {
+        // Calcular días transcurridos desde fechaSiembra
+        let diaTranscurrido = 0;
+        if (c.fechaSiembra) {
+          const paramsFecha = new Date(c.fechaSiembra);
+          const hoy = new Date();
+          const diffTime = Math.abs(hoy.getTime() - paramsFecha.getTime());
+          diaTranscurrido = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        return {
+          id: c.idCultivo,
+          nombre: c.nombreCultivo,
+          dia: diaTranscurrido,
+          estado: 'Activo', // Puedes derivar esto de otra lógica si lo prefieres
+        };
+      });
+
+      setCultivos(cultivosuI);
+    } catch (error) {
+      console.error('Error al obtener cultivos:', error);
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchCultivos();
+    }, [])
+  );
+
+  const cultivosFiltrados = cultivos.filter((c) => {
     const matchFiltro =
       filtroActivo === 'Todos' ||
       (filtroActivo === 'Activos' && c.estado === 'Activo') ||
@@ -80,7 +122,7 @@ export default function CultivosScreen() {
       {/* ── Badge total ── */}
       <View style={styles.totalCard}>
         <View style={styles.totalBadge}>
-          <Text style={styles.totalBadgeNum}>9</Text>
+          <Text style={styles.totalBadgeNum}>{cultivos.length}</Text>
         </View>
         <Text style={styles.totalLabel}>Cultivos en total</Text>
       </View>
@@ -101,39 +143,51 @@ export default function CultivosScreen() {
       </View>
 
       {/* ── Grid de cultivos ── */}
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.grid}
-        showsVerticalScrollIndicator={false}
-      >
-        {cultivosFiltrados.map((cultivo) => (
-          <TouchableOpacity key={cultivo.id} style={styles.cultivoCard} onPress={() => router.push('/detalle-cultivo')}>
-            <PlantPotIcon size={56} />
-            <Text style={styles.cultivoNombre}>{cultivo.nombre}</Text>
-            <View style={styles.cultivoFooter}>
-              <Text style={styles.cultivoDia}>Dia {cultivo.dia}</Text>
-              <View style={[
-                styles.estadoBadge,
-                cultivo.estado === 'Hecho' && styles.estadoBadgeHecho
-              ]}>
-                <Text style={[
-                  styles.estadoText,
-                  cultivo.estado === 'Hecho' && styles.estadoTextHecho
-                ]}>
-                  {cultivo.estado}
-                </Text>
-              </View>
+      {cargando ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      ) : (
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.grid}
+          showsVerticalScrollIndicator={false}
+        >
+          {cultivosFiltrados.length === 0 ? (
+            <View style={{ width: '100%', alignItems: 'center', marginTop: 20 }}>
+              <Text style={{ fontFamily: 'Rubik_400Regular', color: Colors.textMedium }}>
+                No tienes cultivos creados aún.
+              </Text>
             </View>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+          ) : (
+            cultivosFiltrados.map((cultivo) => (
+              <TouchableOpacity key={cultivo.id} style={styles.cultivoCard} onPress={() => router.push('/detalle-cultivo')}>
+                <PlantPotIcon size={56} />
+                <Text style={styles.cultivoNombre}>{cultivo.nombre}</Text>
+                <View style={styles.cultivoFooter}>
+                  <Text style={styles.cultivoDia}>Dia {cultivo.dia}</Text>
+                  <View style={[
+                    styles.estadoBadge,
+                    cultivo.estado === 'Hecho' && styles.estadoBadgeHecho
+                  ]}>
+                    <Text style={[
+                      styles.estadoText,
+                      cultivo.estado === 'Hecho' && styles.estadoTextHecho
+                    ]}>
+                      {cultivo.estado}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))
+          )}
+        </ScrollView>
+      )}
 
-      {/* ── Botón flotante + ── */}
       <TouchableOpacity style={styles.fab} onPress={() => router.push('/crear-cultivo')}>
         <PlusIcon />
       </TouchableOpacity>
 
-      {/* ── Tab Bar ── */}
       <TabBar activeTab="cultivos" />
 
     </SafeAreaView>
@@ -290,7 +344,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
   },
   estadoBadgeHecho: {
-    backgroundColor:Colors.primaryLight,
+    backgroundColor: Colors.primaryLight,
   },
   estadoText: {
     fontFamily: 'Rubik_500Medium',
