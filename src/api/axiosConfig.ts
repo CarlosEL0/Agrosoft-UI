@@ -2,9 +2,25 @@ import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
-// 1. Creamos la instancia de Axios apuntando a la variable de entorno
+// 1. Definimos baseURL con fallback inteligente según plataforma
+const envBaseUrl = process.env.EXPO_PUBLIC_API_URL;
+let computedBaseUrl = envBaseUrl;
+
+if (!computedBaseUrl || computedBaseUrl === 'undefined' || computedBaseUrl === 'null') {
+  if (Platform.OS === 'web') {
+    computedBaseUrl = 'http://localhost:8080/api/v1';
+    console.warn('EXPO_PUBLIC_API_URL no está definido. Usando fallback web http://localhost:8080/api/v1');
+  } else if (Platform.OS === 'android') {
+    computedBaseUrl = 'http://10.0.2.2:8080/api/v1';
+    console.warn('EXPO_PUBLIC_API_URL no está definido. Usando fallback Android http://10.0.2.2:8080/api/v1');
+  } else {
+    computedBaseUrl = 'http://localhost:8080/api/v1';
+    console.warn('EXPO_PUBLIC_API_URL no está definido. Usando fallback iOS http://localhost:8080/api/v1');
+  }
+}
+
 export const api = axios.create({
-  baseURL: process.env.EXPO_PUBLIC_API_URL,
+  baseURL: computedBaseUrl,
   headers: {
     'Content-Type': 'application/json',
   },

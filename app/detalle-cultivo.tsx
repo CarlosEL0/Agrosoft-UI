@@ -88,7 +88,10 @@ export default function DetalleCultivoScreen() {
         {/* ── Botones de acción ── */}
         <View style={styles.accionesContainer}>
           <View style={styles.accionesRow}>
-            <TouchableOpacity style={[styles.accionBtnHalf, styles.accionBtnLight]} onPress={() => router.push('./historial-cultivo')}>
+            <TouchableOpacity
+              style={[styles.accionBtnHalf, styles.accionBtnLight]}
+              onPress={() => router.push({ pathname: './historial-cultivo', params: { idCultivo: idCultivo ?? '' } })}
+            >
               <View style={styles.accionBtnContentCenter}>
                 <HistoryIcon color={Colors.textDark} size={24} />
                 <Text style={styles.accionBtnTextDark}>Historial</Text>

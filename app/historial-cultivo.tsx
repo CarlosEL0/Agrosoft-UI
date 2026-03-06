@@ -1,7 +1,7 @@
 // app/historial-cultivo.tsx
 
 import { Colors } from '@/src/theme/colors';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import React, { useState } from 'react';
 import {
   ScrollView,
@@ -9,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -24,7 +25,8 @@ import { useHistorialCultivo } from '@/src/hooks/useHistorialCultivo';
 
 export default function HistorialCultivoScreen() {
   const router = useRouter();
-  const { filtros, filtroActivo, setFiltroActivo, reportesFiltrados } = useHistorialCultivo();
+  const { idCultivo } = useLocalSearchParams<{ idCultivo: string }>();
+  const { filtros, filtroActivo, setFiltroActivo, reportesFiltrados } = useHistorialCultivo(idCultivo as string);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -70,7 +72,21 @@ export default function HistorialCultivoScreen() {
         showsVerticalScrollIndicator={false}
       >
         {reportesFiltrados.map((reporte) => (
-          <TouchableOpacity key={reporte.id} style={styles.reporteCard} onPress={() => router.push('./detalle-reporte')}>
+          <TouchableOpacity
+            key={reporte.id}
+            style={styles.reporteCard}
+            onPress={() => router.push({
+              pathname: './detalle-reporte',
+              params: {
+                idRef: reporte.id,
+                idEvento: reporte.eventId ?? '',
+                tipo: reporte.tipo,
+                idCultivo: idCultivo ?? '',
+                fecha: reporte.fecha,
+                etapa: reporte.etapa
+              }
+            })}
+          >
             {/* Ícono planta */}
             <View style={styles.reporteIcono}>
               <PlantCircleIcon size={50} />
@@ -86,11 +102,29 @@ export default function HistorialCultivoScreen() {
                 </View>
               </View>
               <Text style={styles.reporteEtapa}>Etapa: {reporte.etapa}</Text>
+              {!!reporte.descripcion && (
+                <Text style={styles.reporteDesc} numberOfLines={1}>
+                  {reporte.descripcion}
+                </Text>
+              )}
+              {!!reporte.observaciones && (
+                <Text style={styles.reporteObs} numberOfLines={1}>
+                  {reporte.observaciones}
+                </Text>
+              )}
             </View>
 
-            {/* Foto placeholder */}
+            {/* Foto */}
             <View style={styles.reporteFoto}>
-              <ImageIcon />
+              {reporte.fotoUrl ? (
+                <Image
+                  source={{ uri: reporte.fotoUrl }}
+                  style={{ width: '100%', height: '100%', borderRadius: 12 }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <ImageIcon />
+              )}
             </View>
           </TouchableOpacity>
         ))}
@@ -216,6 +250,16 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   reporteEtapa: {
+    fontFamily: 'Rubik_400Regular',
+    fontSize: 12,
+    color: Colors.textMedium,
+  },
+  reporteDesc: {
+    fontFamily: 'Rubik_400Regular',
+    fontSize: 12,
+    color: Colors.textDark,
+  },
+  reporteObs: {
     fontFamily: 'Rubik_400Regular',
     fontSize: 12,
     color: Colors.textMedium,

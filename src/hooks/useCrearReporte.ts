@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 import { enviarReporte, uploadImagen } from '@/src/services/reporteService';
 
 export function useCrearReporte() {
@@ -73,9 +74,10 @@ export function useCrearReporte() {
             if (idRef && tipoBackend && fotos.length > 0) {
                 setIsUploading(true);
                 setUploadProgress(0);
+                const urlsSubidas: string[] = [];
                 for (let i = 0; i < fotos.length; i++) {
                     const uri = fotos[i];
-                    await uploadImagen(
+                    const resImg = await uploadImagen(
                         uri,
                         idRef,
                         tipoBackend,
@@ -85,8 +87,24 @@ export function useCrearReporte() {
                             setUploadProgress(global);
                         }
                     );
+                    const url = resImg?.data?.data?.urlArchivo;
+                    if (url) {
+                        urlsSubidas.push(url);
+                    }
                     const done = Math.round(((i + 1) / fotos.length) * 100);
                     setUploadProgress(done);
+                }
+                if (urlsSubidas.length > 0) {
+                    const keySingle = `reportPhoto:${tipoBackend}:${idRef}`;
+                    const keyMulti = `reportPhotos:${tipoBackend}:${idRef}`;
+                    // Guardamos la primera (compatibilidad con historial) y todas como JSON
+                    if (Platform.OS === 'web') {
+                        localStorage.setItem(keySingle, urlsSubidas[0]);
+                        localStorage.setItem(keyMulti, JSON.stringify(urlsSubidas));
+                    } else {
+                        await SecureStore.setItemAsync(keySingle, urlsSubidas[0]);
+                        await SecureStore.setItemAsync(keyMulti, JSON.stringify(urlsSubidas));
+                    }
                 }
                 setIsUploading(false);
             }
@@ -110,12 +128,12 @@ export function useCrearReporte() {
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             quality: 0.8,
-            allowsMultipleSelection: false,
+            allowsMultipleSelection: true,
         });
 
         if (!result.canceled && result.assets.length > 0) {
-            const uri = result.assets[0].uri;
-            setFotos((prev) => [...prev, uri]);
+            const uris = result.assets.map(a => a.uri).filter(Boolean) as string[];
+            setFotos((prev) => [...prev, ...uris]);
         }
     };
 

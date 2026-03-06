@@ -1,7 +1,7 @@
 // app/detalle-reporte.tsx
 
 import { Colors } from '@/src/theme/colors';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import React from 'react';
 import {
   Dimensions,
@@ -10,6 +10,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -28,6 +29,7 @@ import { useDetalleReporte } from '@/src/hooks/useDetalleReporte';
 export default function DetalleReporteScreen() {
   const router = useRouter();
   const { reporte } = useDetalleReporte();
+  const { idRef, idCultivo, tipo } = useLocalSearchParams<{ idRef: string; idCultivo: string; tipo: string }>();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -94,13 +96,32 @@ export default function DetalleReporteScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Fotos del reporte</Text>
           <View style={styles.fotosRow}>
-            {reporte.fotos.map((_, index) => (
-              <View key={index} style={styles.fotoPlaceholder}>
+            {reporte.fotos.length > 0 ? (
+              reporte.fotos.map((url, index) => (
+                <Image
+                  key={index}
+                  source={{ uri: url || undefined }}
+                  style={styles.fotoImage}
+                  resizeMode="cover"
+                />
+              ))
+            ) : (
+              <View style={styles.fotoPlaceholder}>
                 <ImagePlaceholderIcon size={40} />
               </View>
-            ))}
+            )}
           </View>
         </View>
+
+        {String(tipo).toLowerCase() === 'irregularidad' && (
+          <TouchableOpacity
+            style={styles.iaBtn}
+            onPress={() => router.push({ pathname: '/analisis-ia', params: { idCultivo: String(idCultivo || ''), idIrregularidad: String(idRef || '') } })}
+            activeOpacity={0.85}
+          >
+            <Text style={styles.iaBtnText}>Analizar con IA</Text>
+          </TouchableOpacity>
+        )}
 
       </ScrollView>
 
@@ -228,6 +249,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
   },
+  fotoImage: {
+    width: (width - 44 - 36 - 12) / 2,
+    height: 120,
+    borderRadius: 14,
+    backgroundColor: '#e8ede9',
+  },
   fotoPlaceholder: {
     width: (width - 44 - 36 - 12) / 2,
     height: 120,
@@ -235,5 +262,16 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  iaBtn: {
+    backgroundColor: Colors.primary,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+  },
+  iaBtnText: {
+    fontFamily: 'Rubik_600SemiBold',
+    fontSize: 16,
+    color: '#fff',
   },
 });
