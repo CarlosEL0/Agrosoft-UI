@@ -116,4 +116,33 @@ export class CultivoService {
             }
         }
     }
+
+    /**
+     * Obtiene y transforma todos los cultivos pertenecientes a un usuario específico.
+     */
+    static async getCultivosDelUsuario(userId: string): Promise<any[]> {
+        const response = await api.get('/cultivos');
+        const data = response.data?.data || [];
+
+        // 1. Filtrar solo los del usuario
+        const misCultivos = data.filter((c: any) => c.idUsuario === userId);
+
+        // 2. Transformar al formato de UI
+        return misCultivos.map((c: any) => {
+            let diaTranscurrido = 0;
+            if (c.fechaSiembra) {
+                const paramsFecha = new Date(c.fechaSiembra);
+                const hoy = new Date();
+                const diffTime = Math.abs(hoy.getTime() - paramsFecha.getTime());
+                diaTranscurrido = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            }
+
+            return {
+                id: c.idCultivo,
+                nombre: c.nombreCultivo,
+                dia: diaTranscurrido,
+                estado: 'Activo', // o según tu lógica de negocio
+            };
+        });
+    }
 }
