@@ -93,6 +93,8 @@ function Paso2({
   onRemoveFoto,
   onSubmit,
   etapaActual,
+  isUploading,
+  uploadProgress,
 }: {
   tipo: string;
   formData: Record<string, string>;
@@ -102,6 +104,8 @@ function Paso2({
   onRemoveFoto: (index: number) => void;
   onSubmit: () => void;
   etapaActual: string;
+  isUploading: boolean;
+  uploadProgress: number;
 }) {
   const campos = camposPorTipo[tipo] || [];
 
@@ -164,8 +168,23 @@ function Paso2({
         </View>
       </View>
 
-      <TouchableOpacity style={styles.continueBtn} onPress={onSubmit} activeOpacity={0.85}>
-        <Text style={styles.continueBtnText}>Guardar reporte</Text>
+      {isUploading && (
+        <View style={styles.pasoCard}>
+          <Text style={styles.pasoQuestion}>Subiendo evidencias</Text>
+          <View style={styles.progressBar}>
+            <View style={[styles.progressInner, { width: `${uploadProgress}%` }]} />
+          </View>
+          <Text style={styles.progressText}>{uploadProgress}%</Text>
+        </View>
+      )}
+
+      <TouchableOpacity
+        style={[styles.continueBtn, isUploading && styles.continueBtnDisabled]}
+        onPress={onSubmit}
+        disabled={isUploading}
+        activeOpacity={0.85}
+      >
+        <Text style={styles.continueBtnText}>{isUploading ? 'Subiendo...' : 'Guardar reporte'}</Text>
       </TouchableOpacity>
 
     </ScrollView>
@@ -189,6 +208,8 @@ export default function CrearReporteScreen() {
     handleAddFoto,
     handleRemoveFoto,
     etapaActual,
+    isUploading,
+    uploadProgress,
   } = useCrearReporte();
 
   return (
@@ -227,6 +248,8 @@ export default function CrearReporteScreen() {
             onRemoveFoto={handleRemoveFoto}
             onSubmit={handleSubmit}
             etapaActual={etapaActual}
+            isUploading={isUploading}
+            uploadProgress={uploadProgress}
           />
         )}
 
@@ -429,5 +452,20 @@ const styles = StyleSheet.create({
     fontFamily: 'Rubik_600SemiBold',
     fontSize: 17,
     color: '#fff',
+  },
+  progressBar: {
+    height: 10,
+    borderRadius: 8,
+    backgroundColor: '#dfe6df',
+    overflow: 'hidden',
+  },
+  progressInner: {
+    height: '100%',
+    backgroundColor: Colors.primary,
+  },
+  progressText: {
+    fontFamily: 'Rubik_500Medium',
+    fontSize: 13,
+    color: Colors.textDark,
   },
 });

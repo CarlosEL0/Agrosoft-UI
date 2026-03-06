@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from 'react-native';
+import { enviarReporte, uploadImagen } from '@/src/services/reporteService';
 
 export function useCrearReporte() {
     const router = useRouter();
@@ -11,6 +12,8 @@ export function useCrearReporte() {
     const [tipoReporte, setTipoReporte] = useState('');
     const [formData, setFormData] = useState<Record<string, string>>({});
     const [fotos, setFotos] = useState<string[]>([]); // URIs de imágenes seleccionadas
+    const [isUploading, setIsUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     const titles = ['Crear reporte', `Reporte de ${tipoReporte.toLowerCase()}`];
 
@@ -25,13 +28,73 @@ export function useCrearReporte() {
 
     const handleSubmit = async () => {
         try {
-            // TODO: Conectar con API para crear reporte
-            console.log('Enviando reporte:', { idCultivo, etapaActual, tipoReporte, formData, fotos });
+            if (!tipoReporte) {
+                Alert.alert('Selecciona un tipo', 'Debes elegir un tipo de reporte.');
+                return;
+            }
+            if (!idCultivo) {
+                Alert.alert('Cultivo requerido', 'Falta el id del cultivo.');
+                return;
+            }
 
-            // Simulación de éxito
+            const res = await enviarReporte(tipoReporte, idCultivo as string, formData);
+
+            const data = res?.data?.data || {};
+            let idRef: string | undefined;
+            let tipoBackend: 'RIEGO' | 'FERTILIZACION' | 'FUMIGACION' | 'PODA' | 'IRREGULARIDAD' | 'CRECIMIENTO' | undefined;
+
+            switch (tipoReporte) {
+                case 'Riego':
+                    idRef = data.idRiego;
+                    tipoBackend = 'RIEGO';
+                    break;
+                case 'Poda':
+                    idRef = data.idPoda;
+                    tipoBackend = 'PODA';
+                    break;
+                case 'Fertilizacion':
+                    idRef = data.idFertilizacion;
+                    tipoBackend = 'FERTILIZACION';
+                    break;
+                case 'Fumigacion':
+                    idRef = data.idFumigacion;
+                    tipoBackend = 'FUMIGACION';
+                    break;
+                case 'Irregularidad':
+                    idRef = data.id;
+                    tipoBackend = 'IRREGULARIDAD';
+                    break;
+                case 'Crecimiento':
+                    idRef = data.id;
+                    tipoBackend = 'CRECIMIENTO';
+                    break;
+            }
+
+            if (idRef && tipoBackend && fotos.length > 0) {
+                setIsUploading(true);
+                setUploadProgress(0);
+                for (let i = 0; i < fotos.length; i++) {
+                    const uri = fotos[i];
+                    await uploadImagen(
+                        uri,
+                        idRef,
+                        tipoBackend,
+                        `Evidencia de ${tipoReporte.toLowerCase()}`,
+                        (pct) => {
+                            const global = Math.round(((i + pct / 100) / fotos.length) * 100);
+                            setUploadProgress(global);
+                        }
+                    );
+                    const done = Math.round(((i + 1) / fotos.length) * 100);
+                    setUploadProgress(done);
+                }
+                setIsUploading(false);
+            }
             router.back();
         } catch (error) {
             console.error('Error al enviar reporte:', error);
+            Alert.alert('Error', 'No se pudo enviar el reporte. Intenta nuevamente.');
+            setIsUploading(false);
         }
     };
 
@@ -75,5 +138,7 @@ export function useCrearReporte() {
         handleSubmit,
         handleAddFoto,
         handleRemoveFoto,
+        isUploading,
+        uploadProgress,
     };
 }
