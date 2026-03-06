@@ -20,28 +20,13 @@ import { TabBar } from '@/src/components/ui/TabBar';
 
 
 
-// ── Datos mock ────────────────────────────────────────────────────────────────
-
-const reportesMock = [
-  { id: '1', cultivo: 'Maiz rojo', tipo: 'Riego', etapa: 'Germinacion', fecha: '25/06/24' },
-  { id: '2', cultivo: 'Frijol bayo', tipo: 'Podacion', etapa: 'Cosecha', fecha: '25/06/24' },
-  { id: '3', cultivo: 'Lechuga', tipo: 'Riego', etapa: 'Germinacion', fecha: '25/06/24' },
-  { id: '4', cultivo: 'Maiz rojo', tipo: 'Riego', etapa: 'Germinacion', fecha: '24/06/24' },
-  { id: '5', cultivo: 'Tomate', tipo: 'Crecimiento', etapa: 'Germinacion', fecha: '23/06/24' },
-];
-
-const filtros = ['Todos', 'Riego', 'Poda', 'fertiliza'];
+import { useHistorialGeneral } from '@/src/hooks/useHistorialGeneral';
 
 // ── Pantalla ──────────────────────────────────────────────────────────────────
 
 export default function HistorialGeneralScreen() {
   const router = useRouter();
-  const [filtroActivo, setFiltroActivo] = useState('Todos');
-
-  const reportesFiltrados = reportesMock.filter((r) => {
-    if (filtroActivo === 'Todos') return true;
-    return r.tipo.toLowerCase().includes(filtroActivo.toLowerCase());
-  });
+  const { filtros, filtroActivo, setFiltroActivo, reportesFiltrados } = useHistorialGeneral();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
