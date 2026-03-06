@@ -130,26 +130,47 @@ export class CultivoService {
         // Helper: parsear YYYY-MM-DD como fecha LOCAL (no UTC) para evitar desfases
         const fechaLocal = (iso: string): Date => {
             const [y, m, d] = iso.split('-').map(Number);
-            return new Date(y, m - 1, d);
+            const dt = new Date(y, m - 1, d);
+            dt.setHours(0, 0, 0, 0);
+            return dt;
         };
 
-        // 2. Transformar al formato de UI
-        return misCultivos.map((c: any) => {
-            let diaTranscurrido = 1;
-            if (c.fechaSiembra) {
-                const hoy = new Date();
-                hoy.setHours(0, 0, 0, 0);
-                const siembra = fechaLocal(c.fechaSiembra);
-                diaTranscurrido = Math.floor((hoy.getTime() - siembra.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-            }
+        const hoy = new Date();
+        hoy.setHours(0, 0, 0, 0);
 
-            return {
-                id: c.idCultivo,
-                nombre: c.nombreCultivo,
-                dia: Math.max(1, diaTranscurrido),
-                estado: 'Activo',
-            };
-        });
+        // 2. Transformar al formato de UI con estado calculado por fases
+        const items = await Promise.all(
+            misCultivos.map(async (c: any) => {
+                let diaTranscurrido = 1;
+                if (c.fechaSiembra) {
+                    const siembra = fechaLocal(c.fechaSiembra);
+                    diaTranscurrido = Math.floor((hoy.getTime() - siembra.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                }
+
+                let estado: 'Activo' | 'Hecho' = 'Activo';
+                try {
+                    const fasesRes = await api.get(`/fases/cultivo/${c.idCultivo}`);
+                    const fases: any[] = fasesRes.data?.data || [];
+                    if (fases.length > 0) {
+                        const maxFin = fases
+                            .map((f) => fechaLocal(f.fechaFin))
+                            .reduce((a, b) => (a > b ? a : b));
+                        if (hoy >= maxFin) {
+                            estado = 'Hecho';
+                        }
+                    }
+                } catch {}
+
+                return {
+                    id: c.idCultivo,
+                    nombre: c.nombreCultivo,
+                    dia: Math.max(1, diaTranscurrido),
+                    estado,
+                };
+            })
+        );
+
+        return items;
     }
 
     /**
