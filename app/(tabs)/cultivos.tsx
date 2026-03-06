@@ -103,7 +103,7 @@ export default function CultivosScreen() {
             </View>
           ) : (
             cultivosFiltrados.map((cultivo) => (
-              <TouchableOpacity key={cultivo.id} style={styles.cultivoCard} onPress={() => router.push('/detalle-cultivo')}>
+              <TouchableOpacity key={cultivo.id} style={styles.cultivoCard} onPress={() => router.push({ pathname: '/detalle-cultivo', params: { idCultivo: cultivo.id } })}>
                 <PlantPotIcon size={56} />
                 <Text style={styles.cultivoNombre}>{cultivo.nombre}</Text>
                 <View style={styles.cultivoFooter}>

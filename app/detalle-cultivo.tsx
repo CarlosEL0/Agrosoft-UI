@@ -1,7 +1,7 @@
 // app/detalle-cultivo.tsx
 
 import { Colors } from '@/src/theme/colors';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import {
   Dimensions,
@@ -43,7 +43,8 @@ import { useDetalleCultivo } from '@/src/hooks/useDetalleCultivo';
 
 export default function DetalleCultivoScreen() {
   const router = useRouter();
-  const { cultivo } = useDetalleCultivo();
+  const { idCultivo } = useLocalSearchParams<{ idCultivo: string }>();
+  const { cultivo, cargando } = useDetalleCultivo(idCultivo);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -57,7 +58,7 @@ export default function DetalleCultivoScreen() {
           <TouchableOpacity onPress={() => router.back()}>
             <BackIcon />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Crear cultivo</Text>
+          <Text style={styles.headerTitle}>Detalle cultivo</Text>
         </View>
 
         {/* ── Card principal cultivo ── */}
@@ -71,7 +72,8 @@ export default function DetalleCultivoScreen() {
 
             {/* Info ciclo */}
             <View style={styles.cicloInfo}>
-              <Text style={styles.cicloNombre}>{cultivo.ciclo}</Text>
+              <Text style={styles.cicloNombre}>{cultivo.faseActual}</Text>
+              <Text style={styles.cicloSubtitle}>{cultivo.ciclo}</Text>
               <Text style={styles.cicloDias}>
                 Día {cultivo.diaActual} de {cultivo.diaTotal}{"  "}
                 {cultivo.progreso}% completado
@@ -94,7 +96,7 @@ export default function DetalleCultivoScreen() {
 
             <TouchableOpacity
               style={[styles.accionBtnHalf, styles.accionBtnLight]}
-              onPress={() => router.push({ pathname: '/analisis-ia', params: { idCultivo: '123' } })}
+              onPress={() => router.push({ pathname: '/analisis-ia', params: { idCultivo: idCultivo ?? '' } })}
             >
               <View style={styles.accionBtnContentCenter}>
                 <RobotIcon color={Colors.textDark} size={24} />
@@ -216,6 +218,12 @@ const styles = StyleSheet.create({
     fontFamily: 'Rubik_600SemiBold',
     fontSize: 18,
     color: Colors.textDark,
+  },
+  cicloSubtitle: {
+    fontFamily: 'Rubik_400Regular',
+    fontSize: 12,
+    color: Colors.textMedium,
+    marginTop: -2,
   },
   cicloDias: {
     fontFamily: 'Rubik_400Regular',
