@@ -39,25 +39,11 @@ function ProgressBar({ progress }: { progress: number }) {
 // ── Pantalla ──────────────────────────────────────────────────────────────────
 
 
+import { useDetalleCultivo } from '@/src/hooks/useDetalleCultivo';
+
 export default function DetalleCultivoScreen() {
   const router = useRouter();
-
-  // Mock data — luego vendrá de la API
-  const cultivo = {
-    nombre: 'Maiz',
-    ciclo: 'Ciclo floracion',
-    diaActual: 45,
-    diaTotal: 90,
-    progreso: 35,
-    salud: 'Buena',
-    faseActual: 'Germinacion',
-    riesgo: 'Bajo',
-    ia: {
-      riego: 'Óptimo',
-      nutricion: 'Adecuada',
-      plagas: 'Sin indicios',
-    },
-  };
+  const { cultivo } = useDetalleCultivo();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
