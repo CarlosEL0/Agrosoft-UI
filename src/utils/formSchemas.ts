@@ -29,7 +29,6 @@ export const camposPorTipo: Record<string, CampoFormulario[]> = {
         { key: 'nombre_plaga', label: 'Nombre de la plaga', placeholder: 'Ej: pulgón, mosca blanca' },
         { key: 'nivel_dano', label: 'Nivel de daño', placeholder: 'Selecciona nivel', tipo: 'select', opciones: ['Leve', 'Moderado', 'Severo', 'Crítico'] },
         { key: 'severidad', label: 'Severidad', placeholder: 'Selecciona severidad', tipo: 'select', opciones: ['Baja', 'Media', 'Alta'] },
-        { key: 'fecha_deteccion', label: 'Fecha de detección', placeholder: 'DD/MM/AAAA' },
         { key: 'estado', label: 'Estado', placeholder: 'Selecciona estado', tipo: 'select', opciones: ['Activa', 'En tratamiento', 'Resuelta'] },
         { key: 'comentario', label: 'Comentario del agricultor', placeholder: 'Describe la situación' },
         { key: 'descripcion', label: 'Descripción', placeholder: 'Descripción detallada' },

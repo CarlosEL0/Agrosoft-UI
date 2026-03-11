@@ -13,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Importaciones extraídas
@@ -26,6 +27,44 @@ import { StepIndicator } from '@/src/components/ui/StepIndicator';
 import { camposPorTipo, tiposReporte } from '@/src/utils/formSchemas';
 
 const { width } = Dimensions.get('window');
+
+function formatFecha(date: Date): string {
+  const dia = String(date.getDate()).padStart(2, '0');
+  const mes = String(date.getMonth() + 1).padStart(2, '0');
+  const anio = String(date.getFullYear());
+  return `${dia}/${mes}/${anio}`;
+}
+
+function parseFecha(value: string): Date {
+  const hoy = new Date();
+  if (!value) return hoy;
+  const soloDigitos = value.replace(/\D/g, '');
+  if (soloDigitos.length >= 8) {
+    const d = parseInt(soloDigitos.slice(0, 2), 10);
+    const m = parseInt(soloDigitos.slice(2, 4), 10) - 1;
+    const y = parseInt(soloDigitos.slice(4, 8), 10);
+    const dt = new Date(y, m, d);
+    if (!isNaN(dt.getTime())) return dt;
+  }
+  const parts = value.split('/');
+  if (parts.length === 3) {
+    const d = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    let y = parts[2];
+    if (y.length === 2) y = '20' + y;
+    const yy = parseInt(y, 10);
+    const dt = new Date(yy, m, d);
+    if (!isNaN(dt.getTime())) return dt;
+  }
+  return hoy;
+}
+
+function maskFechaInput(text: string): string {
+  const digits = text.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+}
 
 // ── Paso 1: Tipo de reporte ───────────────────────────────────────────────────
 
@@ -108,6 +147,19 @@ function Paso2({
   uploadProgress: number;
 }) {
   const campos = camposPorTipo[tipo] || [];
+  const [showFechaEventoPicker, setShowFechaEventoPicker] = useState(false);
+
+  const handleChangeFechaEvento = (v: string) => {
+    onChange('fecha_evento', maskFechaInput(v));
+  };
+
+  const handlePickerFechaEventoChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    setShowFechaEventoPicker(false);
+    if (selectedDate) {
+      const formatted = formatFecha(selectedDate);
+      onChange('fecha_evento', formatted);
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
@@ -124,8 +176,11 @@ function Paso2({
             placeholder="DD/MM/AAAA"
             placeholderTextColor={Colors.textPlaceholder}
             value={formData['fecha_evento'] || ''}
-            onChangeText={(v) => onChange('fecha_evento', v)}
+            onChangeText={handleChangeFechaEvento}
             keyboardType="numeric"
+            onFocus={() => {
+              setShowFechaEventoPicker(true);
+            }}
           />
         </View>
 
@@ -186,6 +241,15 @@ function Paso2({
       >
         <Text style={styles.continueBtnText}>{isUploading ? 'Subiendo...' : 'Guardar reporte'}</Text>
       </TouchableOpacity>
+
+      {showFechaEventoPicker && Platform.OS !== 'web' && (
+        <DateTimePicker
+          value={parseFecha(formData['fecha_evento'] || '')}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handlePickerFechaEventoChange}
+        />
+      )}
 
     </ScrollView>
   );

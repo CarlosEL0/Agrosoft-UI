@@ -16,6 +16,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Importaciones extraídas
@@ -30,6 +31,44 @@ import { CultivoFormData, generarEtapasPreview, tiposCultivo, Etapa } from '@/sr
 import { useCrearCultivo } from '@/src/hooks/useCrearCultivo';
 
 const { width } = Dimensions.get('window');
+
+function formatFecha(date: Date): string {
+  const dia = String(date.getDate()).padStart(2, '0');
+  const mes = String(date.getMonth() + 1).padStart(2, '0');
+  const anio = String(date.getFullYear());
+  return `${dia}/${mes}/${anio}`;
+}
+
+function parseFecha(value: string): Date {
+  const hoy = new Date();
+  if (!value) return hoy;
+  const soloDigitos = value.replace(/\D/g, '');
+  if (soloDigitos.length >= 8) {
+    const d = parseInt(soloDigitos.slice(0, 2), 10);
+    const m = parseInt(soloDigitos.slice(2, 4), 10) - 1;
+    const y = parseInt(soloDigitos.slice(4, 8), 10);
+    const dt = new Date(y, m, d);
+    if (!isNaN(dt.getTime())) return dt;
+  }
+  const parts = value.split('/');
+  if (parts.length === 3) {
+    const d = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    let y = parts[2];
+    if (y.length === 2) y = '20' + y;
+    const yy = parseInt(y, 10);
+    const dt = new Date(yy, m, d);
+    if (!isNaN(dt.getTime())) return dt;
+  }
+  return hoy;
+}
+
+function maskFechaInput(text: string): string {
+  const digits = text.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+}
 function Paso1({
   data,
   onChange,
@@ -116,6 +155,20 @@ function Paso2({
   onChange: (key: keyof CultivoFormData, value: any) => void;
   onNext: () => void;
 }) {
+  const [showSiembraPicker, setShowSiembraPicker] = useState(false);
+
+  const handleChangeFechaSiembra = (v: string) => {
+    onChange('fechaSiembra', maskFechaInput(v));
+  };
+
+  const handlePickerSiembraChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    setShowSiembraPicker(false);
+    if (selectedDate) {
+      const formatted = formatFecha(selectedDate);
+      onChange('fechaSiembra', formatted);
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
       <View style={styles.pasoCard}>
@@ -168,12 +221,21 @@ function Paso2({
               placeholder="DD/MM/AAAA"
               placeholderTextColor={Colors.textPlaceholder}
               value={data.fechaSiembra}
-              onChangeText={(v) => onChange('fechaSiembra', v)}
+              onChangeText={handleChangeFechaSiembra}
               keyboardType="numeric"
+              onFocus={() => {
+                setShowSiembraPicker(true);
+              }}
             />
-            <View style={styles.calendarIcon}>
+            <TouchableOpacity
+              style={styles.calendarIcon}
+              onPress={() => {
+                setShowSiembraPicker(true);
+              }}
+              activeOpacity={0.7}
+            >
               <CalendarIcon />
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -181,6 +243,14 @@ function Paso2({
       <TouchableOpacity style={styles.continueBtn} onPress={onNext} activeOpacity={0.85}>
         <Text style={styles.continueBtnText}>Continuar &gt;</Text>
       </TouchableOpacity>
+      {showSiembraPicker && Platform.OS !== 'web' && (
+        <DateTimePicker
+          value={parseFecha(data.fechaSiembra)}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handlePickerSiembraChange}
+        />
+      )}
     </ScrollView>
   );
 }
@@ -194,6 +264,33 @@ function Paso3({
   onChange: (key: keyof CultivoFormData, value: any) => void;
   onNext: () => void;
 }) {
+  const [showInicioPicker, setShowInicioPicker] = useState(false);
+  const [showFinPicker, setShowFinPicker] = useState(false);
+
+  const handleChangeFechaInicio = (v: string) => {
+    onChange('fechaInicioCiclo', maskFechaInput(v));
+  };
+
+  const handleChangeFechaFin = (v: string) => {
+    onChange('fechaFinCiclo', maskFechaInput(v));
+  };
+
+  const handlePickerInicioChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    setShowInicioPicker(false);
+    if (selectedDate) {
+      const formatted = formatFecha(selectedDate);
+      onChange('fechaInicioCiclo', formatted);
+    }
+  };
+
+  const handlePickerFinChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    setShowFinPicker(false);
+    if (selectedDate) {
+      const formatted = formatFecha(selectedDate);
+      onChange('fechaFinCiclo', formatted);
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
       <View style={styles.pasoCard}>
@@ -221,12 +318,21 @@ function Paso3({
               placeholder="DD/MM/AAAA"
               placeholderTextColor={Colors.textPlaceholder}
               value={data.fechaInicioCiclo}
-              onChangeText={(v) => onChange('fechaInicioCiclo', v)}
+              onChangeText={handleChangeFechaInicio}
               keyboardType="numeric"
+              onFocus={() => {
+                setShowInicioPicker(true);
+              }}
             />
-            <View style={styles.calendarIcon}>
+            <TouchableOpacity
+              style={styles.calendarIcon}
+              onPress={() => {
+                setShowInicioPicker(true);
+              }}
+              activeOpacity={0.7}
+            >
               <CalendarIcon />
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -238,12 +344,21 @@ function Paso3({
               placeholder="DD/MM/AAAA"
               placeholderTextColor={Colors.textPlaceholder}
               value={data.fechaFinCiclo}
-              onChangeText={(v) => onChange('fechaFinCiclo', v)}
+              onChangeText={handleChangeFechaFin}
               keyboardType="numeric"
+              onFocus={() => {
+                setShowFinPicker(true);
+              }}
             />
-            <View style={styles.calendarIcon}>
+            <TouchableOpacity
+              style={styles.calendarIcon}
+              onPress={() => {
+                setShowFinPicker(true);
+              }}
+              activeOpacity={0.7}
+            >
               <CalendarIcon />
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -259,6 +374,22 @@ function Paso3({
       >
         <Text style={styles.continueBtnText}>Continuar &gt;</Text>
       </TouchableOpacity>
+      {showInicioPicker && Platform.OS !== 'web' && (
+        <DateTimePicker
+          value={parseFecha(data.fechaInicioCiclo)}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handlePickerInicioChange}
+        />
+      )}
+      {showFinPicker && Platform.OS !== 'web' && (
+        <DateTimePicker
+          value={parseFecha(data.fechaFinCiclo)}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handlePickerFinChange}
+        />
+      )}
     </ScrollView>
   );
 }
@@ -296,9 +427,41 @@ function Paso4({
     updateStore(localEtapas.filter((_, idx) => idx !== i));
   };
 
+  const parseFechaEtapa = (value: string): Date | null => {
+    if (!value) return null;
+    const parts = value.split('/');
+    if (parts.length !== 3) return null;
+    const d = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    let y = parts[2];
+    if (y.length === 2) y = '20' + y;
+    const yy = parseInt(y, 10);
+    if (Number.isNaN(d) || Number.isNaN(m) || Number.isNaN(yy)) return null;
+    const dt = new Date(yy, m, d);
+    if (Number.isNaN(dt.getTime())) return null;
+    return dt;
+  };
+
+  const calcularDiasEtapa = (inicio: string, fin: string): number | null => {
+    const di = parseFechaEtapa(inicio);
+    const df = parseFechaEtapa(fin);
+    if (!di || !df) return null;
+    const diffMs = df.getTime() - di.getTime();
+    const diffDias = Math.round(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDias < 0) return null;
+    return diffDias;
+  };
+
   const handleChangeEtapa = (i: number, field: keyof Etapa, val: any) => {
     const arr = [...localEtapas];
-    arr[i] = { ...arr[i], [field]: val };
+    const etapaActual = { ...arr[i], [field]: val };
+    if (field === 'inicio' || field === 'fin') {
+      const diasCalculados = calcularDiasEtapa(etapaActual.inicio, etapaActual.fin);
+      if (diasCalculados !== null) {
+        etapaActual.dias = diasCalculados;
+      }
+    }
+    arr[i] = etapaActual;
     updateStore(arr);
   };
 
@@ -433,7 +596,7 @@ function Paso5({
 
         <View style={styles.iaCard}>
           <View style={styles.iaHeader}>
-            <RobotIcon />
+            <RobotIcon color="#ffffff" />
             <View style={styles.iaTag}>
               <Text style={styles.iaTagText}>Primera inspeccion</Text>
             </View>
