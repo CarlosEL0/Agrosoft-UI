@@ -7,15 +7,20 @@ const envBaseUrl = process.env.EXPO_PUBLIC_API_URL;
 let computedBaseUrl = envBaseUrl;
 
 if (!computedBaseUrl || computedBaseUrl === 'undefined' || computedBaseUrl === 'null') {
-  if (Platform.OS === 'web') {
-    computedBaseUrl = 'http://localhost:8080/api/v1';
-    console.warn('EXPO_PUBLIC_API_URL no está definido. Usando fallback web http://localhost:8080/api/v1');
-  } else if (Platform.OS === 'android') {
-    computedBaseUrl = 'http://10.0.2.2:8080/api/v1';
-    console.warn('EXPO_PUBLIC_API_URL no está definido. Usando fallback Android http://10.0.2.2:8080/api/v1');
+  if (__DEV__) {
+    if (Platform.OS === 'web') {
+      computedBaseUrl = 'http://localhost:8080/api/v1';
+      console.warn('EXPO_PUBLIC_API_URL no está definido. Usando fallback web http://localhost:8080/api/v1');
+    } else if (Platform.OS === 'android') {
+      computedBaseUrl = 'http://10.0.2.2:8080/api/v1';
+      console.warn('EXPO_PUBLIC_API_URL no está definido. Usando fallback Android http://10.0.2.2:8080/api/v1');
+    } else {
+      computedBaseUrl = 'http://localhost:8080/api/v1';
+      console.warn('EXPO_PUBLIC_API_URL no está definido. Usando fallback iOS http://localhost:8080/api/v1');
+    }
   } else {
-    computedBaseUrl = 'http://localhost:8080/api/v1';
-    console.warn('EXPO_PUBLIC_API_URL no está definido. Usando fallback iOS http://localhost:8080/api/v1');
+    computedBaseUrl = 'https://agrosoft-api-production.up.railway.app/api/v1';
+    console.warn('EXPO_PUBLIC_API_URL no está definido en release. Usando API de producción https://agrosoft-api-production.up.railway.app/api/v1');
   }
 }
 

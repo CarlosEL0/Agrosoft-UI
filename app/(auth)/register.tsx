@@ -13,8 +13,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
-// Importaciones extraídas
 import { EyeIcon } from '@/src/components/icons/EyeIcon';
 import { LockIcon } from '@/src/components/icons/LockIcon';
 import { MailIcon } from '@/src/components/icons/MailIcon';
@@ -23,7 +21,6 @@ import { InputField } from '@/src/components/ui/InputField';
 import { TopoPattern } from '@/src/components/ui/TopoPattern';
 import { useRegister } from '@/src/hooks/useRegister';
 
-// ── Pantalla Register ─────────────────────────────────────────────────────────
 
 export default function RegisterScreen() {
   const router = useRouter();
