@@ -26,9 +26,7 @@ if (!computedBaseUrl || computedBaseUrl === 'undefined' || computedBaseUrl === '
 
 export const api = axios.create({
   baseURL: computedBaseUrl,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  // No ponemos Content-Type por defecto para que axios lo maneje según el body (JSON o FormData)
 });
 
 // 2. Interceptor: Se ejecuta mágicamente ANTES de cada petición al servidor

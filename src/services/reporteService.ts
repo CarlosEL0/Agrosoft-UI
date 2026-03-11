@@ -1,5 +1,6 @@
 import { api } from '@/src/api/axiosConfig';
 import { Platform } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 
 function todayISO(): string {
   const d = new Date();
@@ -263,31 +264,54 @@ export async function uploadImagen(
 ) {
   const nombre = uri.split('/').pop() || `foto-${Date.now()}.jpg`;
   const formData = new FormData();
+
   if (Platform.OS === 'web') {
     const resp = await fetch(uri);
     const blob = await resp.blob();
     const file = new File([blob], nombre, { type: blob.type || 'image/jpeg' });
     formData.append('archivo', file);
   } else {
-    formData.append('archivo', {
-      uri,
+    // En Android/iOS, el objeto FormData necesita un objeto especial para archivos
+    const fileToUpload = {
+      uri: Platform.OS === 'android' ? uri : uri.replace('file://', ''),
       name: nombre,
       type: 'image/jpeg',
-    } as any);
+    };
+    formData.append('archivo', fileToUpload as any);
   }
+
   formData.append('descripcion', descripcion || '');
   formData.append('idReferencia', idReferencia);
   formData.append('tipo', tipo);
 
-  return api.post('/imagenes', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-    onUploadProgress: (e) => {
-      if (e.total && e.total > 0) {
-        const pct = Math.round((e.loaded / e.total) * 100);
-        if (onProgress) onProgress(pct);
-      }
+  // Obtenemos el token para enviarlo en el fetch manual
+  let token = null;
+  if (Platform.OS === 'web') {
+    token = localStorage.getItem('userToken');
+  } else {
+    token = await SecureStore.getItemAsync('userToken');
+  }
+
+  // Usamos fetch en lugar de axios para la subida
+  // fetch maneja mucho mejor el multipart/form-data en Android
+  const response = await fetch(`${api.defaults.baseURL}/imagenes`, {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Accept': 'application/json',
+      // IMPORTANTE: NO poner Content-Type, fetch lo pone solo con el boundary correcto
     },
   });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || 'Error en la subida de imagen');
+  }
+
+  const result = await response.json();
+  // Retornamos en el formato que espera el hook (envuelto en data)
+  return { data: result };
 }
 
 export async function getEventosPorCultivo(idCultivo: string) {

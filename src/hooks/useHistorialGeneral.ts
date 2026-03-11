@@ -31,7 +31,8 @@ function parseISOToDate(iso: string): Date {
 }
 
 async function getPhotoForRef(tipo: string, idRef: string): Promise<string | null> {
-    const key = `reportPhoto:${tipo}:${idRef}`;
+    // Las llaves deben usar '.' en lugar de ':' para ser compatibles con SecureStore en Android
+    const key = `reportPhoto.${tipo}.${idRef}`;
     if (Platform.OS === 'web') {
         return localStorage.getItem(key);
     }

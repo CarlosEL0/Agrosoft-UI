@@ -230,8 +230,9 @@ export function useDetalleReporte() {
             }
 
             const tipoUpper = (tipo as string || '').toUpperCase();
-            const keySingle = `reportPhoto:${tipoUpper}:${id}`;
-            const keyMulti = `reportPhotos:${tipoUpper}:${id}`;
+            // Las llaves de SecureStore deben usar '.' en lugar de ':' para ser compatibles con Android
+            const keySingle = `reportPhoto.${tipoUpper}.${id}`;
+            const keyMulti = `reportPhotos.${tipoUpper}.${id}`;
             let fotosUrls: string[] = [];
             if (Platform.OS === 'web') {
                 const json = localStorage.getItem(keyMulti);

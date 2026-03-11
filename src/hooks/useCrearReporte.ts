@@ -107,8 +107,9 @@ export function useCrearReporte() {
             }
             try {
                 if (urlsSubidas.length > 0) {
-                    const keySingle = `reportPhoto:${tipoBackend}:${idRef}`;
-                    const keyMulti = `reportPhotos:${tipoBackend}:${idRef}`;
+                    // Expo SecureStore no permite ':' en las llaves. Usamos '.' en su lugar.
+                    const keySingle = `reportPhoto.${tipoBackend}.${idRef}`;
+                    const keyMulti = `reportPhotos.${tipoBackend}.${idRef}`;
                     if (Platform.OS === 'web') {
                         localStorage.setItem(keySingle, urlsSubidas[0]);
                         localStorage.setItem(keyMulti, JSON.stringify(urlsSubidas));
