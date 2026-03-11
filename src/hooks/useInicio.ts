@@ -39,9 +39,11 @@ export function useInicio() {
         let irregularidades = 0;
         let riesgo: 'Bajo' | 'Moderado' | 'Alto' = 'Bajo';
         try {
-          // A. Obtener irregularidades activas
-          const resIrr = await api.get(`/irregularidades/cultivo/${c.id}`, { params: { estado: 'activa' } });
-          const activas = (resIrr.data?.data || []) as any[];
+          // A. Obtener todas las irregularidades del cultivo
+          const resIrr = await api.get(`/irregularidades/cultivo/${c.id}`);
+          const todas = (resIrr.data?.data || []) as any[];
+          // Filtrar las que están activas localmente para el conteo
+          const activas = todas.filter(i => i.estado === 'Activa' || i.estado === 'activa');
           irregularidades = activas.length;
 
           // B. Obtener último crecimiento para salud
