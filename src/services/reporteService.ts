@@ -83,30 +83,19 @@ function buildDescripcionFumigacion(form: Record<string, string>) {
   return parts.join(' | ');
 }
 
-async function crearEvento(
-  tipoEvento: string,
-  idCultivo: string,
-  descripcion?: string,
-  observaciones?: string,
-  fechaEventoISO?: string | null
-) {
-  // Resolver idEtapa automáticamente según fecha del evento
-  let idEtapaResuelta: string | null = null;
+async function resolverEtapaId(idCultivo: string, fechaISO: string): Promise<string | null> {
   try {
-    const fechaISO = fechaEventoISO || todayISO();
     const fecha = parseISOToDate(fechaISO);
-    // 1) Fases del cultivo
     const fasesRes = await api.get(`/fases/cultivo/${idCultivo}`);
     const fases: any[] = fasesRes.data?.data || [];
-    // Ordenar y encontrar fase que cubra la fecha
     const fasesOrdenadas = [...fases].sort((a, b) => (a.numeroCiclo || 0) - (b.numeroCiclo || 0));
     const faseActiva = fasesOrdenadas.find((f) => {
       const ini = parseISOToDate(f.fechaInicio);
       const fin = parseISOToDate(f.fechaFin);
       return fecha >= ini && fecha <= fin;
     }) || (fasesOrdenadas.length ? fasesOrdenadas[fasesOrdenadas.length - 1] : null);
+
     if (faseActiva?.idCiclo) {
-      // 2) Etapas del ciclo
       const etapasRes = await api.get(`/etapas/ciclo/${faseActiva.idCiclo}`);
       const etapas: any[] = etapasRes.data?.data || [];
       const etapasOrdenadas = [...etapas].sort((a, b) => parseISOToDate(a.fechaInicio).getTime() - parseISOToDate(b.fechaInicio).getTime());
@@ -115,19 +104,29 @@ async function crearEvento(
         const fin = parseISOToDate(e.fechaFin);
         return fecha >= ini && fecha <= fin;
       }) || (etapasOrdenadas.length ? etapasOrdenadas[etapasOrdenadas.length - 1] : null);
-      if (etapaVigente?.idEtapa) {
-        idEtapaResuelta = etapaVigente.idEtapa;
-      }
+      return etapaVigente?.idEtapa || null;
     }
   } catch {
-    // Si algo falla, seguimos con idEtapa null
+    return null;
   }
+  return null;
+}
+
+async function crearEvento(
+  tipoEvento: string,
+  idCultivo: string,
+  descripcion?: string,
+  observaciones?: string,
+  fechaEventoISO?: string | null
+) {
+  const fechaISO = fechaEventoISO || todayISO();
+  const idEtapaResuelta = await resolverEtapaId(idCultivo, fechaISO);
 
   const payload = {
     idCultivo,
     idEtapa: idEtapaResuelta,
     tipoEvento,
-    fechaEvento: fechaEventoISO || todayISO(),
+    fechaEvento: fechaISO,
     descripcion: descripcion || '',
     observaciones: observaciones || '',
   };
@@ -200,8 +199,12 @@ export async function crearReporteFumigacion(idCultivo: string, form: Record<str
 }
 
 export async function reportarIrregularidad(idCultivo: string, form: Record<string, string>) {
+  const fechaISO = parseFechaDMYToISO(form.fecha_evento) || todayISO();
+  const idEtapaResuelta = await resolverEtapaId(idCultivo, fechaISO);
+
   const payload = {
     idCultivo,
+    idEtapa: idEtapaResuelta,
     idRegistro: null,
     tipoIrregularidad: form.tipo_irregularidad,
     nombrePlaga: form.nombre_plaga,
@@ -210,48 +213,24 @@ export async function reportarIrregularidad(idCultivo: string, form: Record<stri
     severidad: form.severidad,
     estado: form.estado,
     descripcion: form.descripcion,
+    fechaDeteccion: fechaISO,
   };
   return api.post('/irregularidades', payload);
 }
 
 export async function registrarCrecimiento(idCultivo: string, form: Record<string, string>) {
-  // Resolver idEtapa automáticamente para la fecha de registro
-  let idEtapaResuelta: string | null = null;
-  try {
-    const fechaISO = todayISO();
-    const fecha = parseISOToDate(fechaISO);
-    const fasesRes = await api.get(`/fases/cultivo/${idCultivo}`);
-    const fases: any[] = fasesRes.data?.data || [];
-    const fasesOrdenadas = [...fases].sort((a, b) => (a.numeroCiclo || 0) - (b.numeroCiclo || 0));
-    const faseActiva = fasesOrdenadas.find((f) => {
-      const ini = parseISOToDate(f.fechaInicio);
-      const fin = parseISOToDate(f.fechaFin);
-      return fecha >= ini && fecha <= fin;
-    }) || (fasesOrdenadas.length ? fasesOrdenadas[fasesOrdenadas.length - 1] : null);
-    if (faseActiva?.idCiclo) {
-      const etapasRes = await api.get(`/etapas/ciclo/${faseActiva.idCiclo}`);
-      const etapas: any[] = etapasRes.data?.data || [];
-      const etapasOrdenadas = [...etapas].sort((a, b) => parseISOToDate(a.fechaInicio).getTime() - parseISOToDate(b.fechaInicio).getTime());
-      const etapaVigente = etapasOrdenadas.find((e) => {
-        const ini = parseISOToDate(e.fechaInicio);
-        const fin = parseISOToDate(e.fechaFin);
-        return fecha >= ini && fecha <= fin;
-      }) || (etapasOrdenadas.length ? etapasOrdenadas[etapasOrdenadas.length - 1] : null);
-      if (etapaVigente?.idEtapa) {
-        idEtapaResuelta = etapaVigente.idEtapa;
-      }
-    }
-  } catch {}
+  const fechaISO = parseFechaDMYToISO(form.fecha_evento) || todayISO();
+  const idEtapaResuelta = await resolverEtapaId(idCultivo, fechaISO);
 
   const payload = {
     idCultivo,
     idEtapa: idEtapaResuelta,
-    fechaRegistro: todayISO(),
-    alturaPlanta: form.altura_planta ? parseFloat(form.altura_planta) : undefined,
-    grosorTallo: form.grosor_tallo ? parseFloat(form.grosor_tallo) : undefined,
-    diametro: form.diametro ? parseFloat(form.diametro) : undefined,
-    estadoSalud: form.estado_salud,
-    observaciones: form.observaciones,
+    fechaRegistro: fechaISO,
+    alturaPlanta: form.altura_planta ? parseFloat(form.altura_planta) : 0,
+    grosorTallo: form.grosor_tallo ? parseFloat(form.grosor_tallo) : 0,
+    diametro: form.diametro ? parseFloat(form.diametro) : 0,
+    estadoSalud: form.salud || form.estado_salud || 'Excelente',
+    observaciones: form.observaciones || '',
   };
   return api.post('/crecimiento', payload);
 }

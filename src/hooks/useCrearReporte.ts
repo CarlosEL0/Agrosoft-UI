@@ -28,21 +28,21 @@ export function useCrearReporte() {
     };
 
     const handleSubmit = async () => {
+        if (!tipoReporte) {
+            Alert.alert('Selecciona un tipo', 'Debes elegir un tipo de reporte.');
+            return;
+        }
+        if (!idCultivo) {
+            Alert.alert('Cultivo requerido', 'Falta el id del cultivo.');
+            return;
+        }
+
+        let idRef: string | undefined;
+        let tipoBackend: 'RIEGO' | 'FERTILIZACION' | 'FUMIGACION' | 'PODA' | 'IRREGULARIDAD' | 'CRECIMIENTO' | undefined;
+
         try {
-            if (!tipoReporte) {
-                Alert.alert('Selecciona un tipo', 'Debes elegir un tipo de reporte.');
-                return;
-            }
-            if (!idCultivo) {
-                Alert.alert('Cultivo requerido', 'Falta el id del cultivo.');
-                return;
-            }
-
             const res = await enviarReporte(tipoReporte, idCultivo as string, formData);
-
             const data = res?.data?.data || {};
-            let idRef: string | undefined;
-            let tipoBackend: 'RIEGO' | 'FERTILIZACION' | 'FUMIGACION' | 'PODA' | 'IRREGULARIDAD' | 'CRECIMIENTO' | undefined;
 
             switch (tipoReporte) {
                 case 'Riego':
@@ -70,13 +70,20 @@ export function useCrearReporte() {
                     tipoBackend = 'CRECIMIENTO';
                     break;
             }
+        } catch (error) {
+            console.error('Error al enviar reporte:', error);
+            Alert.alert('Error', 'No se pudo enviar el reporte. Intenta nuevamente.');
+            return;
+        }
 
-            if (idRef && tipoBackend && fotos.length > 0) {
-                setIsUploading(true);
-                setUploadProgress(0);
-                const urlsSubidas: string[] = [];
-                for (let i = 0; i < fotos.length; i++) {
-                    const uri = fotos[i];
+        if (idRef && tipoBackend && fotos.length > 0) {
+            setIsUploading(true);
+            setUploadProgress(0);
+            const urlsSubidas: string[] = [];
+            let algunErrorImagen = false;
+            for (let i = 0; i < fotos.length; i++) {
+                const uri = fotos[i];
+                try {
                     const resImg = await uploadImagen(
                         uri,
                         idRef,
@@ -91,13 +98,17 @@ export function useCrearReporte() {
                     if (url) {
                         urlsSubidas.push(url);
                     }
-                    const done = Math.round(((i + 1) / fotos.length) * 100);
-                    setUploadProgress(done);
+                } catch (err) {
+                    console.error('Error subiendo imagen de reporte:', err);
+                    algunErrorImagen = true;
                 }
+                const done = Math.round(((i + 1) / fotos.length) * 100);
+                setUploadProgress(done);
+            }
+            try {
                 if (urlsSubidas.length > 0) {
                     const keySingle = `reportPhoto:${tipoBackend}:${idRef}`;
                     const keyMulti = `reportPhotos:${tipoBackend}:${idRef}`;
-                    // Guardamos la primera (compatibilidad con historial) y todas como JSON
                     if (Platform.OS === 'web') {
                         localStorage.setItem(keySingle, urlsSubidas[0]);
                         localStorage.setItem(keyMulti, JSON.stringify(urlsSubidas));
@@ -106,14 +117,17 @@ export function useCrearReporte() {
                         await SecureStore.setItemAsync(keyMulti, JSON.stringify(urlsSubidas));
                     }
                 }
-                setIsUploading(false);
+            } catch (err) {
+                console.error('Error guardando URLs de fotos localmente:', err);
+                algunErrorImagen = true;
             }
-            router.back();
-        } catch (error) {
-            console.error('Error al enviar reporte:', error);
-            Alert.alert('Error', 'No se pudo enviar el reporte. Intenta nuevamente.');
+            if (algunErrorImagen) {
+                Alert.alert('Aviso', 'El reporte se guardó, pero hubo errores al subir algunas fotos.');
+            }
             setIsUploading(false);
         }
+
+        router.back();
     };
 
     const handleAddFoto = async () => {

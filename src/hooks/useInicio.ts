@@ -39,12 +39,33 @@ export function useInicio() {
         let irregularidades = 0;
         let riesgo: 'Bajo' | 'Moderado' | 'Alto' = 'Bajo';
         try {
-          const res = await api.get(`/irregularidades/cultivo/${c.id}`, { params: { estado: 'activa' } });
-          const activas = (res.data?.data || []) as any[];
+          // A. Obtener irregularidades activas
+          const resIrr = await api.get(`/irregularidades/cultivo/${c.id}`, { params: { estado: 'activa' } });
+          const activas = (resIrr.data?.data || []) as any[];
           irregularidades = activas.length;
-          if (irregularidades === 0) riesgo = 'Bajo';
-          else if (irregularidades <= 2) riesgo = 'Moderado';
-          else riesgo = 'Alto';
+
+          // B. Obtener último crecimiento para salud
+          let saludCrecimiento = 'Excelente';
+          try {
+            const resCrec = await api.get(`/crecimiento/cultivo/${c.id}`);
+            const crecimientos = (resCrec.data?.data || []) as any[];
+            if (crecimientos.length > 0) {
+              const ultimo = crecimientos.sort((a, b) => new Date(b.fechaRegistro).getTime() - new Date(a.fechaRegistro).getTime())[0];
+              saludCrecimiento = ultimo.estadoSalud || 'Excelente';
+            }
+          } catch {}
+
+          // C. Lógica de Riesgo (Sincronizada con CultivoService)
+          const tieneAlta = activas.some(i => i.severidad === 'Alta');
+          const tieneMedia = activas.some(i => i.severidad === 'Media');
+
+          if (tieneAlta || irregularidades > 2 || saludCrecimiento === 'Malo') {
+            riesgo = 'Alto';
+          } else if (tieneMedia || irregularidades > 0 || saludCrecimiento === 'Regular') {
+            riesgo = 'Moderado';
+          } else {
+            riesgo = 'Bajo';
+          }
         } catch {}
         enriquecidos.push({
           id: c.id,

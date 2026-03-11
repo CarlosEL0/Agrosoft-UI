@@ -250,29 +250,55 @@ export class CultivoService {
             }
         }
 
-        // 5. Calcular Salud y Riesgo a partir de irregularidades activas del cultivo
-        //    GET /irregularidades/cultivo/{id}?estado=activa (sin modificar el backend)
+        // 5. Calcular Salud y Riesgo a partir de irregularidades activas y último registro de crecimiento
         let salud = 'Buena';
         let riesgo = 'Bajo';
         try {
+            // A. Obtener irregularidades activas
             const resIrreg = await api.get(`/irregularidades/cultivo/${idCultivo}`, {
                 params: { estado: 'activa' }
             });
             const irregActivas: any[] = resIrreg.data?.data || [];
-            const cantidad = irregActivas.length;
+            
+            // B. Obtener último registro de crecimiento para ver la salud reportada
+            let saludCrecimiento = 'Excelente';
+            try {
+                const resCrec = await api.get(`/crecimiento/cultivo/${idCultivo}`);
+                const crecimientos: any[] = resCrec.data?.data || [];
+                if (crecimientos.length > 0) {
+                    // Ordenar por fecha y tomar el más reciente
+                    const ultimoCrec = crecimientos.sort((a, b) => 
+                        new Date(b.fechaRegistro).getTime() - new Date(a.fechaRegistro).getTime()
+                    )[0];
+                    saludCrecimiento = ultimoCrec.estadoSalud || 'Excelente';
+                }
+            } catch (errCrec) {
+                console.error('Error al obtener crecimiento para salud:', errCrec);
+            }
 
-            if (cantidad === 0) {
-                salud = 'Buena';
-                riesgo = 'Bajo';
-            } else if (cantidad <= 2) {
+            // C. Lógica de Salud Combinada
+            const tieneIrregAlta = irregActivas.some(i => i.severidad === 'Alta');
+            const tieneIrregMedia = irregActivas.some(i => i.severidad === 'Media');
+            
+            if (saludCrecimiento === 'Malo' || tieneIrregAlta || irregActivas.length > 3) {
+                salud = 'Mala';
+            } else if (saludCrecimiento === 'Regular' || tieneIrregMedia || irregActivas.length > 0) {
                 salud = 'Regular';
+            } else {
+                salud = 'Buena';
+            }
+
+            // D. Lógica de Riesgo Combinada
+            if (tieneIrregAlta || irregActivas.length > 2 || saludCrecimiento === 'Malo') {
+                riesgo = 'Alto';
+            } else if (tieneIrregMedia || irregActivas.length > 0 || saludCrecimiento === 'Regular') {
                 riesgo = 'Moderado';
             } else {
-                salud = 'Mala';
-                riesgo = 'Alto';
+                riesgo = 'Bajo';
             }
-        } catch {
-            // Si falla la petición, mantenemos los valores por defecto
+        } catch (err) {
+            console.error('Error calculando salud/riesgo:', err);
+            // Fallback a valores por defecto si falla algo
         }
 
         // 6. Llamar a la IA para resumen de cuidados recientes (últimos 7 días)
