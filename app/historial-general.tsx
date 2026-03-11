@@ -83,7 +83,7 @@ export default function HistorialGeneralScreen() {
                 idRef: reporte.id,
                 idEvento: reporte.eventId ?? '',
                 tipo: reporte.tipo,
-                idCultivo: '', // en general no pasamos idCultivo específico
+                idCultivo: reporte.idCultivo,
                 fecha: reporte.fecha,
                 etapa: reporte.etapa
               }

@@ -9,7 +9,6 @@ export function useDetalleReporte() {
     const [cargando, setCargando] = useState(false);
     const { idRef, tipo, idCultivo, etapa, fecha, idEvento } = useLocalSearchParams<{ idRef: string; tipo: string; idCultivo: string; etapa?: string; fecha?: string; idEvento?: string }>();
 
-    // Mock data — luego vendrá de la API
     const [reporte, setReporte] = useState({
         tipo: (tipo as string) || 'Reporte',
         etapa: (etapa as string) || 'N/A',
@@ -202,6 +201,13 @@ export function useDetalleReporte() {
                     { label: 'Descripción', value: String(data.descripcion ?? 'N/D') },
                 ];
                 fecha = formato(data.fechaDeteccion);
+                if (data.idEtapa) {
+                    const etapaRes = await api.get(`/etapas/${data.idEtapa}`);
+                    const et = etapaRes.data?.data || {};
+                    etapaTexto = et.nombreEtapa || et.nombre || et.etapa || etapaTexto;
+                } else if (data.fechaDeteccion) {
+                    etapaTexto = await resolverEtapaPorFecha(idCultivo as string, String(data.fechaDeteccion));
+                }
             } else if (t === 'Crecimiento' && idCultivo) {
                 const crecRes = await getCrecimientoPorCultivo(idCultivo as string);
                 const lista = crecRes.data?.data || [];

@@ -139,11 +139,21 @@ export function useHistorialCultivo(idCultivoParam?: string) {
             const irregularidades = irrRes.data?.data || [];
             for (const irr of irregularidades) {
                 const fotoUrl = irr.id ? await getPhotoForRef('IRREGULARIDAD', irr.id) : null;
+                let etapaNombre = 'N/A';
+                if (irr.idEtapa) {
+                    try {
+                        const etapaRes = await getEtapaPorId(irr.idEtapa);
+                        const etapa = etapaRes.data?.data || {};
+                        etapaNombre = etapa.nombreEtapa || etapa.nombre || etapa.etapa || 'N/A';
+                    } catch {}
+                } else if (irr.fechaDeteccion) {
+                    etapaNombre = await resolverEtapaPorFecha(cultivoId, irr.fechaDeteccion.split('T')[0]);
+                }
                 resultado.push({
                     id: irr.id,
                     eventId: null,
                     tipo: 'Irregularidad',
-                    etapa: 'N/A',
+                    etapa: etapaNombre,
                     fecha: formatFechaISOToDDMMYY(irr.fechaDeteccion),
                     fotoUrl: fotoUrl || undefined,
                     descripcion: irr.descripcion || '',

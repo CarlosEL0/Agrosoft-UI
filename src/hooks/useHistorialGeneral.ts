@@ -69,6 +69,7 @@ type GeneralItem = {
     id: string;
     eventId?: string | null;
     cultivo: string;
+    idCultivo: string;
     tipo: string;
     etapa: string;
     fecha: string;
@@ -137,6 +138,7 @@ export function useHistorialGeneral() {
                         id: idRef || ev.idEvento,
                         eventId: ev.idEvento,
                         cultivo: c.nombre,
+                        idCultivo: c.id,
                         tipo: tipoUi,
                         etapa: etapaNombre,
                         fecha: formatFechaISOToDDMMYY(ev.fechaEvento),
@@ -150,12 +152,23 @@ export function useHistorialGeneral() {
                 const irregularidades = irrRes.data?.data || [];
                 for (const irr of irregularidades) {
                     const fotoUrl = irr.id ? await getPhotoForRef('IRREGULARIDAD', irr.id) : null;
+                    let etapaNombre = 'N/A';
+                    if (irr.idEtapa) {
+                        try {
+                            const etapaRes = await getEtapaPorId(irr.idEtapa);
+                            const etapa = etapaRes.data?.data || {};
+                            etapaNombre = etapa.nombreEtapa || etapa.nombre || etapa.etapa || 'N/A';
+                        } catch {}
+                    } else if (irr.fechaDeteccion) {
+                        etapaNombre = await resolverEtapaPorFecha(c.id, irr.fechaDeteccion.split('T')[0]);
+                    }
                     resultado.push({
                         id: irr.id,
                         eventId: null,
                         cultivo: c.nombre,
+                        idCultivo: c.id,
                         tipo: 'Irregularidad',
-                        etapa: 'N/A',
+                        etapa: etapaNombre,
                         fecha: formatFechaISOToDDMMYY(irr.fechaDeteccion),
                         fotoUrl: fotoUrl || undefined,
                         descripcion: irr.descripcion || '',
@@ -181,6 +194,7 @@ export function useHistorialGeneral() {
                         id: reg.id,
                         eventId: null,
                         cultivo: c.nombre,
+                        idCultivo: c.id,
                         tipo: 'Crecimiento',
                         etapa: etapaNombre,
                         fecha: formatFechaISOToDDMMYY(reg.fechaRegistro),
