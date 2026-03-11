@@ -4,10 +4,6 @@ import { useRouter } from 'expo-router';
 import { CultivoFormData } from '@/src/utils/formSchemas';
 import { CultivoService } from '@/src/services/cultivoService';
 
-/**
- * Custom Hook que encapsula TODA la lógica de estado y negocio de la pantalla Crear Cultivo.
- * Patrón Contenedor/Presentador (Service Layer aplicado al Frontend).
- */
 export function useCrearCultivo() {
     const router = useRouter();
     const [paso, setPaso] = useState(1);

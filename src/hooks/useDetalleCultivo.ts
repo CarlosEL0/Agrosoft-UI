@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { CultivoService } from '@/src/services/cultivoService';
 
-// Valores por defecto (fallback mientras carga o sin cultivoId)
 const CULTIVO_DEFAULT = {
     nombre: '...',
     ciclo: 'Cargando...',

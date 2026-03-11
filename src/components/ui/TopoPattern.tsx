@@ -27,7 +27,7 @@ export function TopoPattern() {
                 </G>
                 {/* Ola blanca en la parte inferior */}
                 <Path
-                    d="M0 240 Q60 210 120 230 Q200 255 280 220 Q350 190 412 215 L412 300 L0 300Z"
+                    d="M0 180 Q60 150 120 170 Q200 195 280 165 Q350 145 412 165 L412 300 L0 300Z"
                     fill={Colors.background}
                     opacity={1}
                 />
