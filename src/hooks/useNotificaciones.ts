@@ -34,18 +34,26 @@ export function useNotificaciones() {
       }
       const res = await getNotificacionesDelUsuario(userId);
       const data = res.data?.data || [];
-      setItems(
-        data.map((n: any) => ({
-          idNotificacion: n.idNotificacion,
-          titulo: n.titulo,
-          mensaje: n.mensaje,
-          tipoNotificacion: n.tipoNotificacion,
-          fechaEnvio: n.fechaEnvio,
-          leido: !!n.leido,
-          idRecurso: n.idRecurso || null,
-          tipoRecurso: n.tipoRecurso || null,
-        }))
-      );
+      console.log('Notificaciones recibidas:', data);
+      
+      const parsedItems = data.map((n: any) => ({
+        idNotificacion: n.idNotificacion,
+        titulo: n.titulo,
+        mensaje: n.mensaje,
+        tipoNotificacion: n.tipoNotificacion,
+        fechaEnvio: n.fechaEnvio,
+        leido: n.leido === true || n.leido === 'true',
+        idRecurso: n.idRecurso || null,
+        tipoRecurso: n.tipoRecurso || null,
+      }));
+
+      // Ordenar por fecha de envío (más recientes primero)
+      parsedItems.sort((a: any, b: any) => new Date(b.fechaEnvio).getTime() - new Date(a.fechaEnvio).getTime());
+
+      setItems(parsedItems);
+    } catch (error) {
+      console.error('Error al cargar notificaciones:', error);
+      setItems([]);
     } finally {
       setCargando(false);
     }
@@ -60,8 +68,12 @@ export function useNotificaciones() {
   const unreadCount = items.filter((i) => !i.leido).length;
 
   const markAsRead = async (id: string) => {
-    await marcarNotificacionLeida(id);
-    setItems((prev) => prev.map((i) => (i.idNotificacion === id ? { ...i, leido: true } : i)));
+    try {
+      await marcarNotificacionLeida(id);
+      setItems((prev) => prev.map((i) => (i.idNotificacion === id ? { ...i, leido: true } : i)));
+    } catch (error) {
+      console.error('Error al marcar notificación como leída:', error);
+    }
   };
 
   return {
