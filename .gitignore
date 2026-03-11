@@ -3,11 +3,13 @@
 # dependencies
 node_modules/
 package-lock.json
+
 # Expo
 .expo/
 dist/
 web-build/
 expo-env.d.ts
+.eas/
 
 # Native
 .kotlin/
@@ -26,6 +28,11 @@ npm-debug.*
 yarn-debug.*
 yarn-error.*
 
+# IDEs
+.idea/
+.vscode/
+*.iml
+
 # macOS
 .DS_Store
 *.pem
@@ -33,6 +40,7 @@ yarn-error.*
 # local env files
 .env*.local
 .env
+
 # typescript
 *.tsbuildinfo
 
