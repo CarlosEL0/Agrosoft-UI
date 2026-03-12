@@ -79,17 +79,27 @@ export default function DetalleReporteScreen() {
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Detalles del reporte</Text>
 
-          {reporte.detalles.map((item, index) => (
-            <View key={index}>
-              <View style={styles.detalleRow}>
-                <Text style={styles.detalleLabel}>{item.label}</Text>
-                <Text style={styles.detalleValue}>{item.value}</Text>
+          {reporte.detalles.map((item, index) => {
+            const esTextoLargo = ['Descripción', 'Observaciones', 'Comentario'].includes(item.label);
+            return (
+              <View key={index}>
+                {esTextoLargo ? (
+                  <View style={styles.detalleBlock}>
+                    <Text style={styles.detalleLabel}>{item.label}</Text>
+                    <Text style={styles.detalleValueBlock}>{item.value}</Text>
+                  </View>
+                ) : (
+                  <View style={styles.detalleRow}>
+                    <Text style={styles.detalleLabel}>{item.label}</Text>
+                    <Text style={styles.detalleValue}>{item.value}</Text>
+                  </View>
+                )}
+                {index < reporte.detalles.length - 1 && (
+                  <View style={styles.detalleDivider} />
+                )}
               </View>
-              {index < reporte.detalles.length - 1 && (
-                <View style={styles.detalleDivider} />
-              )}
-            </View>
-          ))}
+            );
+          })}
         </View>
 
         {/* ── Card "Fotos del reporte" ── */}
@@ -229,6 +239,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 10,
   },
+  detalleBlock: {
+    paddingVertical: 10,
+    gap: 6,
+  },
   detalleLabel: {
     fontFamily: 'Rubik_500Medium',
     fontSize: 14,
@@ -238,10 +252,19 @@ const styles = StyleSheet.create({
     fontFamily: 'Rubik_400Regular',
     fontSize: 14,
     color: Colors.textMedium,
+    flexShrink: 1,
+    maxWidth: '60%',
+    textAlign: 'right',
+  },
+  detalleValueBlock: {
+    fontFamily: 'Rubik_400Regular',
+    fontSize: 14,
+    color: Colors.textMedium,
+    lineHeight: 20,
   },
   detalleDivider: {
     height: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#e8ede9',
   },
 
   // Fotos
