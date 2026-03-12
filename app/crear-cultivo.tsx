@@ -69,6 +69,17 @@ function maskFechaInput(text: string): string {
   if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
   return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
 }
+function filterNumeric(text: string): string {
+  return text.replace(/[^0-9]/g, '');
+}
+
+function filterDecimal(text: string): string {
+  const cleaned = text.replace(/[^0-9.]/g, '');
+  const parts = cleaned.split('.');
+  if (parts.length > 2) return parts[0] + '.' + parts.slice(1).join('');
+  return cleaned;
+}
+
 function Paso1({
   data,
   onChange,
@@ -194,22 +205,23 @@ function Paso2({
           <Text style={styles.fieldLabel}>Tamaño de terreno</Text>
           <TextInput
             style={styles.textInput}
-            placeholder="Ej: 100 M2"
+            placeholder="Ej: 100"
             placeholderTextColor={Colors.textPlaceholder}
             value={data.tamanoTerreno}
-            onChangeText={(v) => onChange('tamanoTerreno', v)}
-            keyboardType="numeric"
+            onChangeText={(v) => onChange('tamanoTerreno', filterNumeric(v))}
+            keyboardType="number-pad"
           />
         </View>
 
         <View>
-          <Text style={styles.fieldLabel}>Cantidad de semillas</Text>
+          <Text style={styles.fieldLabel}>Cantidad de semillas (kg)</Text>
           <TextInput
             style={styles.textInput}
-            placeholder="Ej: 30 Kg"
+            placeholder="Ej: 30"
             placeholderTextColor={Colors.textPlaceholder}
             value={data.cantidadSemillas}
-            onChangeText={(v) => onChange('cantidadSemillas', v)}
+            onChangeText={(v) => onChange('cantidadSemillas', filterDecimal(v))}
+            keyboardType="decimal-pad"
           />
         </View>
 

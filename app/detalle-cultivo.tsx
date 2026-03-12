@@ -31,6 +31,20 @@ import { generarReporteCosechaIA } from '@/src/services/reporteService';
 
 
 
+function maskFechaInput(text: string): string {
+  const digits = text.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+}
+
+function filterDecimal(text: string): string {
+  const cleaned = text.replace(/[^0-9.]/g, '');
+  const parts = cleaned.split('.');
+  if (parts.length > 2) return parts[0] + '.' + parts.slice(1).join('');
+  return cleaned;
+}
+
 // ── Barra de progreso ─────────────────────────────────────────────────────────
 
 function ProgressBar({ progress }: { progress: number }) {
@@ -158,16 +172,17 @@ export default function DetalleCultivoScreen() {
                 placeholder="DD/MM/AAAA"
                 placeholderTextColor={Colors.textLight}
                 value={fechaCosecha}
-                onChangeText={setFechaCosecha}
+                onChangeText={(v) => setFechaCosecha(maskFechaInput(v))}
+                keyboardType="number-pad"
               />
               <Text style={styles.cierreLabel}>Cantidad cosechada (kg)</Text>
               <TextInput
                 style={styles.cierreInput}
                 placeholder="0.00"
                 placeholderTextColor={Colors.textLight}
-                keyboardType="numeric"
+                keyboardType="decimal-pad"
                 value={cantidadCosechada}
-                onChangeText={setCantidadCosechada}
+                onChangeText={(v) => setCantidadCosechada(filterDecimal(v))}
               />
               <Text style={styles.cierreLabel}>Calidad del cultivo</Text>
               <TextInput
