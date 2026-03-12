@@ -20,6 +20,10 @@ export function useCrearCultivo() {
         fechaInicioCiclo: '',
         fechaFinCiclo: '',
         nombrePersonalizado: '',
+        region: '',
+        notasGenerales: '',
+        phSueloMin: '',
+        phSueloMax: '',
     });
 
     const titles = ['Crear cultivo', 'Datos del cultivo', 'Datos del ciclo', 'Etapas del ciclo', 'Confirmar cultivo'];

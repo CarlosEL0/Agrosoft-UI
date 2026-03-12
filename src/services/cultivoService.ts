@@ -28,10 +28,12 @@ export class CultivoService {
             nombreCultivo: formData.tipoCultivo === 'Otro' ? formData.nombrePersonalizado : formData.tipoCultivo,
             tipoCultivo: formData.tipoCultivoDetalle || 'Vegetal',
             fechaSiembra: fechaFormateada,
-            notasGenerales: `Variedad: ${formData.variedad || 'Ninguna'}`.trim(),
+            notasGenerales: formData.notasGenerales?.trim() || `Variedad: ${formData.variedad || 'Ninguna'}`,
+            region: formData.region || '',
             tamanoTerreno: tamanoTerrenoNumerico ? parseInt(tamanoTerrenoNumerico, 10) : null,
             cantidadSemillas: cantidadSemillasNumerico ? parseInt(cantidadSemillasNumerico, 10) : null,
-            alturaEsperada: null,
+            phSueloMin: formData.phSueloMin ? parseFloat(formData.phSueloMin) : null,
+            phSueloMax: formData.phSueloMax ? parseFloat(formData.phSueloMax) : null,
         };
 
         // 4. Crear el Cultivo Base
@@ -303,12 +305,15 @@ export class CultivoService {
 
         // 6. Llamar a la IA para resumen de cuidados recientes (últimos 7 días)
         //    POST /ai/resumen-cuidados — sin modificar el backend
+        const regionContexto = cultivo?.region
+            ? `Incluye recomendaciones considerando el clima típico de la región: ${cultivo.region}.`
+            : null;
         let resumenIA = 'Analizando los registros del cultivo...';
         try {
             const resIA = await api.post('/ai/resumen-cuidados', {
                 idCultivo,
                 diasRetroceso: 7,
-                preguntaAdicional: null,
+                preguntaAdicional: regionContexto,
             });
             resumenIA = resIA.data?.data?.resultadoAnalisis || resumenIA;
         } catch {

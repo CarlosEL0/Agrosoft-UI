@@ -85,6 +85,11 @@ export interface CultivoFormData {
     fechaFinCiclo: string;
     etapas: Etapa[];
     nombrePersonalizado: string;
+    // Nuevos campos del backend
+    region: string;
+    notasGenerales: string;
+    phSueloMin: string;
+    phSueloMax: string;
 }
 
 export const tiposCultivo = ['Maiz', 'Frijol', 'Lechuga', 'Otro'];

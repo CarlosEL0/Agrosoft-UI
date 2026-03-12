@@ -3,74 +3,101 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import {
     ActivityIndicator,
-    SafeAreaView,
-    ScrollView,
     StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
+    ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePerfil } from '@/src/hooks/usePerfil';
 
 export default function PerfilScreen() {
     const router = useRouter();
     const { profile, loading, handleLogout } = usePerfil();
 
+    const fullName = profile ? `${profile.nombre} ${profile.apellidos}` : '—';
+    const initials = profile
+        ? `${profile.nombre?.[0] ?? ''}${profile.apellidos?.[0] ?? ''}`.toUpperCase()
+        : '?';
+
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+            <StatusBar barStyle="light-content" backgroundColor="#1F2E23" />
+
+            <View style={styles.hero}>
+                <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
+                    <Feather name="arrow-left" size={22} color="#ffffff" />
+                </TouchableOpacity>
+
+                <View style={styles.avatarRing}>
+                    <View style={styles.avatar}>
+                        {loading ? (
+                            <ActivityIndicator color="#ffffff" />
+                        ) : (
+                            <Text style={styles.avatarInitials}>{initials}</Text>
+                        )}
+                    </View>
+                </View>
+
+                {!loading && (
+                    <>
+                        <Text style={styles.heroName}>{fullName}</Text>
+                        <Text style={styles.heroEmail}>{profile?.correoElectronico || '—'}</Text>
+                    </>
+                )}
+            </View>
+
             <ScrollView
                 contentContainerStyle={styles.scroll}
                 showsVerticalScrollIndicator={false}
             >
-                {/* ── Header ── */}
-                <View style={styles.header}>
-                    <TouchableOpacity
-                        style={styles.backButton}
-                        onPress={() => router.back()}
-                        activeOpacity={0.8}
-                    >
-                        <Feather name="arrow-left" size={24} color="#ffffff" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Perfil</Text>
-                </View>
+                <Text style={styles.sectionTitle}>Información personal</Text>
 
-                {/* ── Main Title ── */}
-                <Text style={styles.mainTitle}>Mira tus datos</Text>
-
-                {/* ── User Card ── */}
-                <View style={styles.card}>
-                    <View style={styles.avatarContainer}>
-                        <Ionicons name="person" size={50} color="#ffffff" />
+                <View style={styles.infoCard}>
+                    <View style={styles.infoRow}>
+                        <View style={styles.infoIconBox}>
+                            <Ionicons name="person-outline" size={20} color="#1F2E23" />
+                        </View>
+                        <View style={styles.infoTexts}>
+                            <Text style={styles.infoLabel}>Nombre completo</Text>
+                            <Text style={styles.infoValue}>{loading ? '…' : fullName}</Text>
+                        </View>
                     </View>
 
-                    {loading ? (
-                        <ActivityIndicator size="large" color="#1E201E" />
-                    ) : (
-                        <>
-                            <Text style={styles.label}>Usuario:</Text>
-                            <Text style={styles.value}>
-                                {profile ? `${profile.nombre} ${profile.apellidos}` : 'No disponible'}
-                            </Text>
+                    <View style={styles.divider} />
 
-                            <Text style={[styles.label, { marginTop: 16 }]}>Correo</Text>
-                            <Text style={styles.value}>
-                                {profile?.correoElectronico || 'No disponible'}
+                    <View style={styles.infoRow}>
+                        <View style={styles.infoIconBox}>
+                            <Ionicons name="mail-outline" size={20} color="#1F2E23" />
+                        </View>
+                        <View style={styles.infoTexts}>
+                            <Text style={styles.infoLabel}>Correo electrónico</Text>
+                            <Text style={styles.infoValue}>
+                                {loading ? '…' : (profile?.correoElectronico || '—')}
                             </Text>
-                        </>
-                    )}
+                        </View>
+                    </View>
                 </View>
 
-                {/* ── Logout Button ── */}
-                <TouchableOpacity
-                    style={styles.logoutButton}
-                    onPress={handleLogout}
-                    activeOpacity={0.85}
-                >
-                    <MaterialCommunityIcons name="logout" size={24} color="#ffffff" style={styles.logoutIcon} />
-                    <Text style={styles.logoutButtonText}>Cerrar sesion</Text>
-                </TouchableOpacity>
+                {/* ── Sección: Cuenta ── */}
+                <Text style={styles.sectionTitle}>Cuenta</Text>
+
+                <View style={styles.infoCard}>
+                    <View style={styles.infoRow}>
+                        <View style={[styles.infoIconBox, { backgroundColor: '#fdecea' }]}>
+                            <MaterialCommunityIcons name="logout" size={20} color="#c0392b" />
+                        </View>
+                        <TouchableOpacity style={{ flex: 1 }} onPress={handleLogout} activeOpacity={0.7}>
+                            <View style={styles.infoTexts}>
+                                <Text style={[styles.infoLabel, { color: '#c0392b' }]}>Cerrar sesión</Text>
+                                <Text style={styles.infoValue}>Salir de tu cuenta</Text>
+                            </View>
+                        </TouchableOpacity>
+                        <Feather name="chevron-right" size={20} color="#c0392b" />
+                    </View>
+                </View>
             </ScrollView>
         </SafeAreaView>
     );
@@ -79,87 +106,124 @@ export default function PerfilScreen() {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#1F2E23',
     },
-    scroll: {
-        flexGrow: 1,
+
+    // ── Hero ──
+    hero: {
+        backgroundColor: '#1F2E23',
         alignItems: 'center',
+        paddingTop: 16,
+        paddingBottom: 36,
         paddingHorizontal: 24,
-        paddingTop: 20,
-        paddingBottom: 40,
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        width: '100%',
-        marginBottom: 32,
-    },
-    backButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: '#1E201E', // Dark roughly black circle
+    backBtn: {
+        alignSelf: 'flex-start',
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(255,255,255,0.12)',
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 16,
+        marginBottom: 20,
     },
-    headerTitle: {
+    avatarRing: {
+        width: 108,
+        height: 108,
+        borderRadius: 54,
+        borderWidth: 3,
+        borderColor: 'rgba(255,255,255,0.3)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 14,
+    },
+    avatar: {
+        width: 96,
+        height: 96,
+        borderRadius: 48,
+        backgroundColor: '#3a5c45',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    avatarInitials: {
         fontFamily: 'Rubik_600SemiBold',
-        fontSize: 20,
-        color: '#1E201E',
+        fontSize: 36,
+        color: '#ffffff',
+        letterSpacing: 2,
     },
-    mainTitle: {
+    heroName: {
         fontFamily: 'Rubik_600SemiBold',
         fontSize: 22,
-        color: '#000000',
-        marginBottom: 32,
-    },
-    card: {
-        width: '100%',
-        backgroundColor: '#F3F5F4',
-        borderRadius: 20,
-        paddingVertical: 32,
-        paddingHorizontal: 16,
-        alignItems: 'center',
-        marginBottom: 40,
-    },
-    avatarContainer: {
-        width: 90,
-        height: 90,
-        borderRadius: 45,
-        backgroundColor: '#1E201E',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 24,
-    },
-    label: {
-        fontFamily: 'Rubik_600SemiBold',
-        fontSize: 16,
-        color: '#333333',
+        color: '#ffffff',
         marginBottom: 4,
         textAlign: 'center',
     },
-    value: {
-        fontFamily: 'Rubik_600SemiBold',
-        fontSize: 16,
-        color: '#000000',
+    heroEmail: {
+        fontFamily: 'Rubik_400Regular',
+        fontSize: 14,
+        color: 'rgba(255,255,255,0.65)',
         textAlign: 'center',
     },
-    logoutButton: {
-        width: '100%',
-        backgroundColor: '#1F2E23', // Dark green like in the image
-        borderRadius: 16,
-        paddingVertical: 18,
+
+    // ── Scroll body ──
+    scroll: {
+        backgroundColor: '#f4f6f4',
+        borderTopLeftRadius: 28,
+        borderTopRightRadius: 28,
+        paddingTop: 28,
+        paddingHorizontal: 20,
+        paddingBottom: 48,
+        flexGrow: 1,
+    },
+    sectionTitle: {
+        fontFamily: 'Rubik_600SemiBold',
+        fontSize: 13,
+        color: '#7a9488',
+        letterSpacing: 0.8,
+        textTransform: 'uppercase',
+        marginBottom: 10,
+        marginTop: 4,
+    },
+
+    // ── Info Card ──
+    infoCard: {
+        backgroundColor: '#ffffff',
+        borderRadius: 18,
+        paddingHorizontal: 16,
+        marginBottom: 28,
+        overflow: 'hidden',
+    },
+    infoRow: {
         flexDirection: 'row',
         alignItems: 'center',
+        paddingVertical: 16,
+    },
+    infoIconBox: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: '#e8f0ea',
         justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 14,
     },
-    logoutIcon: {
-        marginRight: 10,
+    infoTexts: {
+        flex: 1,
     },
-    logoutButtonText: {
-        fontFamily: 'Rubik_600SemiBold',
-        fontSize: 18,
-        color: '#ffffff',
+    infoLabel: {
+        fontFamily: 'Rubik_500Medium',
+        fontSize: 12,
+        color: '#9aadaa',
+        marginBottom: 2,
+    },
+    infoValue: {
+        fontFamily: 'Rubik_500Medium',
+        fontSize: 15,
+        color: '#1F2E23',
+    },
+    divider: {
+        height: 1,
+        backgroundColor: '#f0f2f0',
+        marginLeft: 54,
     },
 });

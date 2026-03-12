@@ -174,6 +174,7 @@ function Paso2({
   onNext: () => void;
 }) {
   const [showSiembraPicker, setShowSiembraPicker] = useState(false);
+  const [intentoContinuar, setIntentoContinuar] = React.useState(false);
 
   const handleChangeFechaSiembra = (v: string) => {
     onChange('fechaSiembra', maskFechaInput(v));
@@ -187,6 +188,14 @@ function Paso2({
     }
   };
 
+  const handleContinuar2 = () => {
+    if (!data.region) {
+      setIntentoContinuar(true);
+    } else {
+      onNext();
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
       <View style={styles.pasoCard}>
@@ -196,7 +205,7 @@ function Paso2({
           <Text style={styles.cultivoPreviewNombre}>{data.tipoCultivo}</Text>
         </View>
 
-        {/* Campos */}
+        {/* Categoría */}
         <View>
           <Text style={styles.fieldLabel}>Categoría del cultivo</Text>
           <TextInput
@@ -206,6 +215,27 @@ function Paso2({
             value={data.tipoCultivoDetalle}
             onChangeText={(v) => onChange('tipoCultivoDetalle', v)}
           />
+        </View>
+
+        {/* Región — obligatorio */}
+        <View>
+          <Text style={styles.fieldLabel}>
+            Región / Ubicación{' '}
+            <Text style={{ color: '#C0392B', fontFamily: 'Rubik_600SemiBold' }}>*</Text>
+          </Text>
+          <TextInput
+            style={[
+              styles.textInput,
+              intentoContinuar && !data.region && { borderColor: '#C0392B', borderWidth: 1.5 },
+            ]}
+            placeholder="Ej: Jalisco, Valle de México..."
+            placeholderTextColor={Colors.textPlaceholder}
+            value={data.region}
+            onChangeText={(v) => { onChange('region', v); setIntentoContinuar(false); }}
+          />
+          {intentoContinuar && !data.region && (
+            <Text style={styles.errorMsg}>La región es requerida por el sistema.</Text>
+          )}
         </View>
 
         <View>
@@ -232,6 +262,34 @@ function Paso2({
           />
         </View>
 
+        {/* pH Suelo en fila */}
+        <View>
+          <Text style={styles.fieldLabel}>pH del suelo (Opcional)</Text>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Mín  Ej: 5.5"
+                placeholderTextColor={Colors.textPlaceholder}
+                value={data.phSueloMin}
+                onChangeText={(v) => onChange('phSueloMin', filterDecimal(v))}
+                keyboardType="decimal-pad"
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Máx  Ej: 7.0"
+                placeholderTextColor={Colors.textPlaceholder}
+                value={data.phSueloMax}
+                onChangeText={(v) => onChange('phSueloMax', filterDecimal(v))}
+                keyboardType="decimal-pad"
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Fecha siembra */}
         <View>
           <Text style={styles.fieldLabel}>Fecha de siembra</Text>
           <View style={styles.dateInput}>
@@ -242,24 +300,38 @@ function Paso2({
               value={data.fechaSiembra}
               onChangeText={handleChangeFechaSiembra}
               keyboardType="numeric"
-              onFocus={() => {
-                setShowSiembraPicker(true);
-              }}
+              onFocus={() => setShowSiembraPicker(true)}
             />
             <TouchableOpacity
               style={styles.calendarIcon}
-              onPress={() => {
-                setShowSiembraPicker(true);
-              }}
+              onPress={() => setShowSiembraPicker(true)}
               activeOpacity={0.7}
             >
               <CalendarIcon />
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Notas generales */}
+        <View>
+          <Text style={styles.fieldLabel}>Notas generales (Opcional)</Text>
+          <TextInput
+            style={[styles.textInput, { minHeight: 80, textAlignVertical: 'top', paddingTop: 10 }]}
+            placeholder="Observaciones sobre el suelo, clima, historial del terreno..."
+            placeholderTextColor={Colors.textPlaceholder}
+            value={data.notasGenerales}
+            onChangeText={(v) => onChange('notasGenerales', v)}
+            multiline
+            numberOfLines={3}
+          />
+        </View>
       </View>
 
-      <TouchableOpacity style={styles.continueBtn} onPress={onNext} activeOpacity={0.85}>
+      <TouchableOpacity
+        style={[styles.continueBtn, !data.region && styles.continueBtnDisabled]}
+        onPress={handleContinuar2}
+        activeOpacity={0.85}
+      >
         <Text style={styles.continueBtnText}>Continuar &gt;</Text>
       </TouchableOpacity>
       {showSiembraPicker && Platform.OS !== 'web' && (
@@ -444,6 +516,8 @@ function Paso4({
   const [localEtapas, setLocalEtapas] = React.useState<Etapa[]>(() =>
     data.etapas.length > 0 ? data.etapas : generarEtapasPreview(data.fechaSiembra)
   );
+  // Controla qué picker está abierto: { index, campo: 'inicio' | 'fin' } o null
+  const [activePicker, setActivePicker] = useState<{ index: number; campo: 'inicio' | 'fin' } | null>(null);
 
   const updateStore = (nv: Etapa[]) => {
     setLocalEtapas(nv);
@@ -464,7 +538,24 @@ function Paso4({
     updateStore(localEtapas.filter((_, idx) => idx !== i));
   };
 
-  const parseFechaEtapa = (value: string): Date | null => {
+  const parseFechaEtapa = (value: string): Date => {
+    if (!value) return new Date();
+    const parts = value.split('/');
+    if (parts.length === 3) {
+      const d = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      let y = parts[2];
+      if (y.length === 2) y = '20' + y;
+      const yy = parseInt(y, 10);
+      if (!Number.isNaN(d) && !Number.isNaN(m) && !Number.isNaN(yy)) {
+        const dt = new Date(yy, m, d);
+        if (!Number.isNaN(dt.getTime())) return dt;
+      }
+    }
+    return new Date();
+  };
+
+  const parseFechaEtapaONull = (value: string): Date | null => {
     if (!value) return null;
     const parts = value.split('/');
     if (parts.length !== 3) return null;
@@ -480,8 +571,8 @@ function Paso4({
   };
 
   const calcularDiasEtapa = (inicio: string, fin: string): number | null => {
-    const di = parseFechaEtapa(inicio);
-    const df = parseFechaEtapa(fin);
+    const di = parseFechaEtapaONull(inicio);
+    const df = parseFechaEtapaONull(fin);
     if (!di || !df) return null;
     const diffMs = df.getTime() - di.getTime();
     const diffDias = Math.round(diffMs / (1000 * 60 * 60 * 24));
@@ -501,6 +592,24 @@ function Paso4({
     arr[i] = etapaActual;
     updateStore(arr);
   };
+
+  const handlePickerChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    if (!activePicker) return;
+    setActivePicker(null);
+    if (selectedDate) {
+      const formatted = formatFecha(selectedDate);
+      handleChangeEtapa(activePicker.index, activePicker.campo, formatted);
+    }
+  };
+
+  // Valor actual del picker activo
+  const pickerValue = activePicker
+    ? parseFechaEtapa(
+      activePicker.campo === 'inicio'
+        ? localEtapas[activePicker.index]?.inicio
+        : localEtapas[activePicker.index]?.fin
+    )
+    : new Date();
 
   return (
     <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
@@ -526,12 +635,12 @@ function Paso4({
                     <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                       <Text style={{ color: '#1A2521', fontSize: 13, fontFamily: 'Rubik_500Medium' }}>(</Text>
                       <TextInput
-                        style={{ padding: 0, width: 15, textAlign: 'center', fontSize: 13, color: '#1A2521', fontFamily: 'Rubik_500Medium' }}
+                        style={{ padding: 0, width: Math.max(10, String(etapa.dias).length * 9), fontSize: 13, color: '#1A2521', fontFamily: 'Rubik_500Medium', textAlign: 'left' }}
                         value={String(etapa.dias)}
                         keyboardType="numeric"
                         onChangeText={(val) => handleChangeEtapa(index, 'dias', parseInt(val) || 0)}
                       />
-                      <Text style={{ color: '#1A2521', fontSize: 13, fontFamily: 'Rubik_500Medium' }}>Días)</Text>
+                      <Text style={{ color: '#1A2521', fontSize: 13, fontFamily: 'Rubik_500Medium', marginLeft: 2 }}>Días)</Text>
                     </View>
                   </View>
 
@@ -542,31 +651,34 @@ function Paso4({
                   )}
                 </View>
 
+                {/* Campos de fecha con picker nativo */}
                 <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                  {/* Fecha Inicio */}
                   <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1.1 }}>
                     <Text style={{ fontFamily: 'Rubik_600SemiBold', fontSize: 13, color: '#1A2521', marginRight: 4, width: 38 }}>Inicio</Text>
-                    <View style={{ backgroundColor: '#DDE6DF', borderRadius: 8, paddingVertical: 4, paddingHorizontal: 2, flex: 1 }}>
-                      <TextInput
-                        style={{ padding: 0, color: '#1A2521', textAlign: 'center', fontSize: 13, fontFamily: 'Rubik_400Regular' }}
-                        value={etapa.inicio}
-                        placeholder="DD/MM/AA"
-                        placeholderTextColor="#a0b8aa"
-                        onChangeText={(val) => handleChangeEtapa(index, 'inicio', val)}
-                      />
-                    </View>
+                    <TouchableOpacity
+                      style={{ backgroundColor: '#DDE6DF', borderRadius: 8, paddingVertical: 5, paddingHorizontal: 4, flex: 1, alignItems: 'center' }}
+                      onPress={() => setActivePicker({ index, campo: 'inicio' })}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={{ color: etapa.inicio ? '#1A2521' : '#a0b8aa', fontSize: 13, fontFamily: 'Rubik_400Regular' }}>
+                        {etapa.inicio || 'DD/MM/AA'}
+                      </Text>
+                    </TouchableOpacity>
                   </View>
 
+                  {/* Fecha Fin */}
                   <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
                     <Text style={{ fontFamily: 'Rubik_600SemiBold', fontSize: 13, color: '#1A2521', marginRight: 4, width: 22 }}>Fin</Text>
-                    <View style={{ backgroundColor: '#2D3E35', borderRadius: 8, paddingVertical: 4, paddingHorizontal: 2, flex: 1 }}>
-                      <TextInput
-                        style={{ padding: 0, color: '#fff', textAlign: 'center', fontSize: 13, fontFamily: 'Rubik_400Regular' }}
-                        value={etapa.fin}
-                        placeholder="DD/MM/AA"
-                        placeholderTextColor="#a0b8aa"
-                        onChangeText={(val) => handleChangeEtapa(index, 'fin', val)}
-                      />
-                    </View>
+                    <TouchableOpacity
+                      style={{ backgroundColor: '#2D3E35', borderRadius: 8, paddingVertical: 5, paddingHorizontal: 4, flex: 1, alignItems: 'center' }}
+                      onPress={() => setActivePicker({ index, campo: 'fin' })}
+                      activeOpacity={0.75}
+                    >
+                      <Text style={{ color: etapa.fin ? '#fff' : '#a0b8aa', fontSize: 13, fontFamily: 'Rubik_400Regular' }}>
+                        {etapa.fin || 'DD/MM/AA'}
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
               </View>
@@ -588,6 +700,16 @@ function Paso4({
       <TouchableOpacity style={styles.continueBtn} onPress={onNext} activeOpacity={0.85}>
         <Text style={styles.continueBtnText}>Continuar &gt;</Text>
       </TouchableOpacity>
+
+      {/* DateTimePicker nativo - se muestra cuando activePicker no es null */}
+      {activePicker !== null && Platform.OS !== 'web' && (
+        <DateTimePicker
+          value={pickerValue}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handlePickerChange}
+        />
+      )}
     </ScrollView>
   );
 }
