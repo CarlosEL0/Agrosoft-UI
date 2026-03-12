@@ -89,6 +89,17 @@ function Paso1({
   onChange: (key: keyof CultivoFormData, value: any) => void;
   onNext: () => void;
 }) {
+  const [intentoContinuar, setIntentoContinuar] = React.useState(false);
+  const disabled = !data.tipoCultivo || (data.tipoCultivo === 'Otro' && !data.nombrePersonalizado);
+
+  const handleContinuar = () => {
+    if (disabled) {
+      setIntentoContinuar(true);
+    } else {
+      onNext();
+    }
+  };
+
   return (
     <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
       <View style={styles.pasoCard}>
@@ -102,7 +113,7 @@ function Paso1({
                 styles.cultivoOption,
                 data.tipoCultivo === tipo && styles.cultivoOptionActive,
               ]}
-              onPress={() => onChange('tipoCultivo', tipo)}
+              onPress={() => { onChange('tipoCultivo', tipo); setIntentoContinuar(false); }}
               activeOpacity={0.8}
             >
               <PlantCircleIcon size={56} />
@@ -110,6 +121,10 @@ function Paso1({
             </TouchableOpacity>
           ))}
         </View>
+
+        {intentoContinuar && disabled && (
+          <Text style={styles.errorMsg}>Selecciona un tipo de cultivo para continuar.</Text>
+        )}
 
         {data.tipoCultivo === 'Otro' && (
           <View>
@@ -138,16 +153,8 @@ function Paso1({
       </View>
 
       <TouchableOpacity
-        style={[
-          styles.continueBtn,
-          (!data.tipoCultivo || (data.tipoCultivo === 'Otro' && !data.nombrePersonalizado)) &&
-          styles.continueBtnDisabled,
-        ]}
-        onPress={onNext}
-        disabled={
-          !data.tipoCultivo ||
-          (data.tipoCultivo === 'Otro' && !data.nombrePersonalizado)
-        }
+        style={styles.continueBtn}
+        onPress={handleContinuar}
         activeOpacity={0.85}
       >
         <Text style={styles.continueBtnText}>Continuar &gt;</Text>
@@ -191,10 +198,10 @@ function Paso2({
 
         {/* Campos */}
         <View>
-          <Text style={styles.fieldLabel}>Tipo de cultivo</Text>
+          <Text style={styles.fieldLabel}>Categoría del cultivo</Text>
           <TextInput
             style={styles.textInput}
-            placeholder="Hortaliza"
+            placeholder="Ej: Hortaliza, Cereal, Legumbre..."
             placeholderTextColor={Colors.textPlaceholder}
             value={data.tipoCultivoDetalle}
             onChangeText={(v) => onChange('tipoCultivoDetalle', v)}
@@ -202,7 +209,7 @@ function Paso2({
         </View>
 
         <View>
-          <Text style={styles.fieldLabel}>Tamaño de terreno</Text>
+          <Text style={styles.fieldLabel}>Tamaño de terreno (m²)</Text>
           <TextInput
             style={styles.textInput}
             placeholder="Ej: 100"
@@ -295,10 +302,20 @@ function Paso3({
     }
   };
 
+  const [intentoContinuar3, setIntentoContinuar3] = React.useState(false);
+  const [errorFecha, setErrorFecha] = React.useState('');
+
   const handlePickerFinChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     setShowFinPicker(false);
     if (selectedDate) {
       const formatted = formatFecha(selectedDate);
+      // Validar que fin sea posterior a inicio
+      const dInicio = parseFecha(data.fechaInicioCiclo);
+      if (selectedDate < dInicio) {
+        setErrorFecha('La fecha de fin debe ser posterior a la de inicio.');
+      } else {
+        setErrorFecha('');
+      }
       onChange('fechaFinCiclo', formatted);
     }
   };
@@ -373,15 +390,23 @@ function Paso3({
             </TouchableOpacity>
           </View>
         </View>
+        {errorFecha !== '' && (
+          <Text style={styles.errorMsg}>{errorFecha}</Text>
+        )}
       </View>
 
       <TouchableOpacity
         style={[
           styles.continueBtn,
-          (!data.nombreCiclo || !data.fechaInicioCiclo || !data.fechaFinCiclo) && styles.continueBtnDisabled,
+          (!data.nombreCiclo || !data.fechaInicioCiclo || !data.fechaFinCiclo || errorFecha !== '') && styles.continueBtnDisabled,
         ]}
-        onPress={onNext}
-        disabled={!data.nombreCiclo || !data.fechaInicioCiclo || !data.fechaFinCiclo}
+        onPress={() => {
+          if (!data.nombreCiclo || !data.fechaInicioCiclo || !data.fechaFinCiclo) {
+            setIntentoContinuar3(true);
+          } else if (errorFecha === '') {
+            onNext();
+          }
+        }}
         activeOpacity={0.85}
       >
         <Text style={styles.continueBtnText}>Continuar &gt;</Text>
@@ -614,7 +639,7 @@ function Paso5({
             </View>
           </View>
           <View style={styles.iaBody}>
-            <Text style={styles.iaText}>Comenzaré a monitorear tu cultivo desde hoy.</Text>
+            <Text style={styles.iaText}>Comenzaré a monitorear tu {data.tipoCultivo || 'cultivo'} desde hoy.</Text>
             <CheckIcon />
           </View>
         </View>
@@ -727,6 +752,12 @@ const styles = StyleSheet.create({
     color: Colors.textDark,
     marginBottom: 4,
   },
+  errorMsg: {
+    fontFamily: 'Rubik_400Regular',
+    fontSize: 13,
+    color: '#e05252',
+    marginTop: -4,
+  },
 
   // Paso 1 - Grid cultivos
   cultivoGrid: {
@@ -797,7 +828,7 @@ const styles = StyleSheet.create({
 
   // Paso 3 - Etapas
   etapaWrapper: {
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   etapaCard: {
     backgroundColor: '#fff',
@@ -809,10 +840,11 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   etapaConnector: {
-    width: 2,
+    width: 3,
     height: 20,
     backgroundColor: Colors.primary,
-    opacity: 0.4,
+    marginLeft: 34,  // padding(16) + badge center(18)
+    borderRadius: 2,
   },
   etapaFechas: {
     flexDirection: 'row',
