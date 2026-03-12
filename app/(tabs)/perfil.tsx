@@ -3,15 +3,16 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import {
     ActivityIndicator,
-    StatusBar,
+    ScrollView,
     StyleSheet,
     Text,
     TouchableOpacity,
     View,
-    ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePerfil } from '@/src/hooks/usePerfil';
+import { Colors } from '@/src/theme/colors';
+import { BackIcon } from '@/src/components/icons/BackIcon';
 
 export default function PerfilScreen() {
     const router = useRouter();
@@ -24,14 +25,19 @@ export default function PerfilScreen() {
 
     return (
         <SafeAreaView style={styles.safeArea} edges={['top']}>
-            <StatusBar barStyle="light-content" backgroundColor="#1F2E23" />
 
-            <View style={styles.hero}>
-                <TouchableOpacity style={styles.backBtn} onPress={() => router.back()} activeOpacity={0.8}>
-                    <Feather name="arrow-left" size={22} color="#ffffff" />
+            {/* ── Header (mismo estilo que cultivos / inicio) ── */}
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()}>
+                    <BackIcon />
                 </TouchableOpacity>
+                <Text style={styles.headerTitle}>Mi perfil</Text>
+            </View>
 
-                <View style={styles.avatarRing}>
+            <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+
+                {/* ── Avatar card (igual que activosCard en index) ── */}
+                <View style={styles.avatarCard}>
                     <View style={styles.avatar}>
                         {loading ? (
                             <ActivityIndicator color="#ffffff" />
@@ -39,26 +45,21 @@ export default function PerfilScreen() {
                             <Text style={styles.avatarInitials}>{initials}</Text>
                         )}
                     </View>
+                    <View style={styles.avatarTexts}>
+                        <Text style={styles.avatarName}>{loading ? '…' : fullName}</Text>
+                        <Text style={styles.avatarEmail}>
+                            {loading ? '…' : (profile?.correoElectronico || '—')}
+                        </Text>
+                    </View>
                 </View>
 
-                {!loading && (
-                    <>
-                        <Text style={styles.heroName}>{fullName}</Text>
-                        <Text style={styles.heroEmail}>{profile?.correoElectronico || '—'}</Text>
-                    </>
-                )}
-            </View>
-
-            <ScrollView
-                contentContainerStyle={styles.scroll}
-                showsVerticalScrollIndicator={false}
-            >
+                {/* ── Información personal ── */}
                 <Text style={styles.sectionTitle}>Información personal</Text>
 
                 <View style={styles.infoCard}>
                     <View style={styles.infoRow}>
                         <View style={styles.infoIconBox}>
-                            <Ionicons name="person-outline" size={20} color="#1F2E23" />
+                            <Ionicons name="person-outline" size={20} color={Colors.primary} />
                         </View>
                         <View style={styles.infoTexts}>
                             <Text style={styles.infoLabel}>Nombre completo</Text>
@@ -70,7 +71,7 @@ export default function PerfilScreen() {
 
                     <View style={styles.infoRow}>
                         <View style={styles.infoIconBox}>
-                            <Ionicons name="mail-outline" size={20} color="#1F2E23" />
+                            <Ionicons name="mail-outline" size={20} color={Colors.primary} />
                         </View>
                         <View style={styles.infoTexts}>
                             <Text style={styles.infoLabel}>Correo electrónico</Text>
@@ -81,7 +82,7 @@ export default function PerfilScreen() {
                     </View>
                 </View>
 
-                {/* ── Sección: Cuenta ── */}
+                {/* ── Cuenta ── */}
                 <Text style={styles.sectionTitle}>Cuenta</Text>
 
                 <View style={styles.infoCard}>
@@ -98,6 +99,7 @@ export default function PerfilScreen() {
                         <Feather name="chevron-right" size={20} color="#c0392b" />
                     </View>
                 </View>
+
             </ScrollView>
         </SafeAreaView>
     );
@@ -106,75 +108,79 @@ export default function PerfilScreen() {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#1F2E23',
+        backgroundColor: '#f2f4f3',
     },
 
-    // ── Hero ──
-    hero: {
-        backgroundColor: '#1F2E23',
+    // ── Header (idéntico a cultivos.tsx) ──
+    header: {
+        flexDirection: 'row',
         alignItems: 'center',
+        gap: 12,
+        paddingHorizontal: 22,
         paddingTop: 16,
-        paddingBottom: 36,
-        paddingHorizontal: 24,
+        paddingBottom: 12,
     },
     backBtn: {
-        alignSelf: 'flex-start',
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: 'rgba(255,255,255,0.12)',
+        width: 38,
+        height: 38,
+        borderRadius: 12,
+        backgroundColor: '#fff',
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: 20,
     },
-    avatarRing: {
-        width: 108,
-        height: 108,
-        borderRadius: 54,
-        borderWidth: 3,
-        borderColor: 'rgba(255,255,255,0.3)',
-        justifyContent: 'center',
+    headerTitle: {
+        fontFamily: 'Rubik_500Medium',
+        fontSize: 22,
+        color: Colors.textDark,
+    },
+
+    // ── Scroll ──
+    scroll: {
+        paddingHorizontal: 22,
+        paddingBottom: 48,
+        gap: 0,
+    },
+
+    // ── Avatar card (misma forma que activosCard en index) ──
+    avatarCard: {
+        flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 14,
+        backgroundColor: '#e8ede9',
+        borderRadius: 20,
+        padding: 16,
+        marginBottom: 24,
+        gap: 16,
     },
     avatar: {
-        width: 96,
-        height: 96,
-        borderRadius: 48,
-        backgroundColor: '#3a5c45',
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: Colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
     },
     avatarInitials: {
         fontFamily: 'Rubik_600SemiBold',
-        fontSize: 36,
+        fontSize: 24,
         color: '#ffffff',
-        letterSpacing: 2,
+        letterSpacing: 1,
     },
-    heroName: {
+    avatarTexts: {
+        flex: 1,
+    },
+    avatarName: {
         fontFamily: 'Rubik_600SemiBold',
-        fontSize: 22,
-        color: '#ffffff',
-        marginBottom: 4,
-        textAlign: 'center',
+        fontSize: 17,
+        color: Colors.textDark,
+        marginBottom: 3,
     },
-    heroEmail: {
+    avatarEmail: {
         fontFamily: 'Rubik_400Regular',
-        fontSize: 14,
-        color: 'rgba(255,255,255,0.65)',
-        textAlign: 'center',
+        fontSize: 13,
+        color: Colors.textMedium,
     },
 
-    // ── Scroll body ──
-    scroll: {
-        backgroundColor: '#f4f6f4',
-        borderTopLeftRadius: 28,
-        borderTopRightRadius: 28,
-        paddingTop: 28,
-        paddingHorizontal: 20,
-        paddingBottom: 48,
-        flexGrow: 1,
-    },
+    // ── Sección título (idéntico a cultivos.tsx) ──
     sectionTitle: {
         fontFamily: 'Rubik_600SemiBold',
         fontSize: 13,
@@ -185,12 +191,12 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
 
-    // ── Info Card ──
+    // ── Info Card (tarjeta blanca, idéntica al resto de la app) ──
     infoCard: {
         backgroundColor: '#ffffff',
-        borderRadius: 18,
+        borderRadius: 20,
         paddingHorizontal: 16,
-        marginBottom: 28,
+        marginBottom: 24,
         overflow: 'hidden',
     },
     infoRow: {
@@ -202,7 +208,7 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 12,
-        backgroundColor: '#e8f0ea',
+        backgroundColor: '#e8ede9',
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 14,
@@ -211,15 +217,15 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     infoLabel: {
-        fontFamily: 'Rubik_500Medium',
+        fontFamily: 'Rubik_400Regular',
         fontSize: 12,
-        color: '#9aadaa',
+        color: Colors.textLight,
         marginBottom: 2,
     },
     infoValue: {
         fontFamily: 'Rubik_500Medium',
         fontSize: 15,
-        color: '#1F2E23',
+        color: Colors.textDark,
     },
     divider: {
         height: 1,
