@@ -4,7 +4,6 @@ import { Colors } from '@/src/theme/colors';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  Dimensions,
   ScrollView,
   StyleSheet,
   Text,
@@ -30,7 +29,7 @@ import { TreeCircleIcon } from '@/src/components/icons/TreeCircleIcon';
 import { TabBar } from '@/src/components/ui/TabBar';
 import { generarReporteCosechaIA } from '@/src/services/reporteService';
 
-const { width } = Dimensions.get('window');
+
 
 // ── Barra de progreso ─────────────────────────────────────────────────────────
 
@@ -475,13 +474,13 @@ const styles = StyleSheet.create({
   },
   estadoLabel: {
     fontFamily: 'Rubik_500Medium',
-    fontSize: 12,
+    fontSize: 13,
     color: Colors.textDark,
     textAlign: 'center',
   },
   estadoValue: {
     fontFamily: 'Rubik_400Regular',
-    fontSize: 12,
+    fontSize: 13,
     color: Colors.textDark,
     textAlign: 'center',
   },

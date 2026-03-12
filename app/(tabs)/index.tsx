@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   View,
   Animated,
-  Dimensions
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -29,8 +29,9 @@ export default function HomeScreen() {
   const router = useRouter();
   const { cargando, cultivos, cultivoEnRiesgo } = useInicio();
   const { unreadCount } = useNotificaciones();
+  const { width } = useWindowDimensions();
   const scrollX = useRef(new Animated.Value(0)).current;
-  const CARD_WIDTH = 220;
+  const CARD_WIDTH = Math.round(width * 0.62);
   const CARD_SPACING = 12;
 
   return (
