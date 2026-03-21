@@ -26,6 +26,7 @@ import { CheckIcon } from '@/src/components/icons/CheckIcon';
 import { PlantCircleIcon } from '@/src/components/icons/PlantCircleIcon';
 import { RobotIcon } from '@/src/components/icons/RobotIcon';
 import { TrashIcon } from '@/src/components/icons/TrashIcon';
+import { NavBar } from '@/src/components/ui/NavBar';
 import { StepIndicator } from '@/src/components/ui/StepIndicator';
 import { CultivoFormData, generarEtapasPreview, tiposCultivo, Etapa } from '@/src/utils/formSchemas';
 import { useCrearCultivo } from '@/src/hooks/useCrearCultivo';
@@ -101,7 +102,11 @@ function Paso1({
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+       contentContainerStyle={styles.pasoContent} 
+       showsVerticalScrollIndicator={false}
+       keyboardShouldPersistTaps="handled"
+     >
       <View style={styles.pasoCard}>
         <Text style={styles.pasoQuestion}>Que tipo de cultivo realizaras?</Text>
 
@@ -197,7 +202,11 @@ function Paso2({
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+       contentContainerStyle={styles.pasoContent} 
+       showsVerticalScrollIndicator={false}
+       keyboardShouldPersistTaps="handled"
+     >
       <View style={styles.pasoCard}>
         {/* Preview cultivo seleccionado */}
         <View style={styles.cultivoPreview}>
@@ -393,7 +402,11 @@ function Paso3({
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+       contentContainerStyle={styles.pasoContent} 
+       showsVerticalScrollIndicator={false}
+       keyboardShouldPersistTaps="handled"
+     >
       <View style={styles.pasoCard}>
         <View style={styles.cultivoPreview}>
           <PlantCircleIcon size={72} />
@@ -612,7 +625,11 @@ function Paso4({
     : new Date();
 
   return (
-    <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+       contentContainerStyle={styles.pasoContent} 
+       showsVerticalScrollIndicator={false}
+       keyboardShouldPersistTaps="handled"
+     >
       <View style={styles.pasoCard}>
         <Text style={styles.pasoQuestion}>Configura las etapas</Text>
 
@@ -734,7 +751,11 @@ function Paso5({
   ];
 
   return (
-    <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+      contentContainerStyle={styles.pasoContent} 
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
       <View style={styles.pasoCard}>
         <Text style={styles.pasoQuestion}>Finaliza tu cultivo</Text>
 
@@ -793,17 +814,13 @@ export default function CrearCultivoScreen() {
   } = useCrearCultivo();
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <View style={styles.safeArea}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
       >
-        <View style={styles.header}>
-          <TouchableOpacity onPress={handleBack}>
-            <BackIcon />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>{title}</Text>
-        </View>
+        <NavBar title={title} onBack={handleBack} />
 
         <View style={styles.stepRow}>
           <Text style={styles.stepText}>Paso {paso} de 5</Text>
@@ -816,7 +833,7 @@ export default function CrearCultivoScreen() {
         {paso === 4 && <Paso4 data={formData} onChange={handleChange} onNext={handleNext} />}
         {paso === 5 && <Paso5 data={formData} onEdit={handleEditSteps} onCreate={handleCreate} />}
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -861,6 +878,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     paddingBottom: 32,
     gap: 16,
+    backgroundColor: '#ffffff',
   },
   pasoCard: {
     backgroundColor: '#e8ede9',

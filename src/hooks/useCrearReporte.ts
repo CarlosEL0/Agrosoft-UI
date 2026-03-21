@@ -70,9 +70,10 @@ export function useCrearReporte() {
                     tipoBackend = 'CRECIMIENTO';
                     break;
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error al enviar reporte:', error);
-            Alert.alert('Error', 'No se pudo enviar el reporte. Intenta nuevamente.');
+            const errorMsg = error.response?.data?.message || error.response?.data || 'No se pudo enviar el reporte. Intenta nuevamente.';
+            Alert.alert('Error', errorMsg);
             return;
         }
 

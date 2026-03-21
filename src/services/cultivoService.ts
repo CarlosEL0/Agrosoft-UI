@@ -22,7 +22,7 @@ export class CultivoService {
         const tamanoTerrenoNumerico = formData.tamanoTerreno.replace(/[^0-9]/g, '');
         const cantidadSemillasNumerico = formData.cantidadSemillas.replace(/[^0-9]/g, '');
 
-        // 3. Payload del Cultivo
+        // 3. Payload del Cultivo (Enviamos como Number ahora que el backend debe estar corregido)
         const cultivoPayload = {
             idUsuario: userId,
             nombreCultivo: formData.tipoCultivo === 'Otro' ? formData.nombrePersonalizado : formData.tipoCultivo,
@@ -30,11 +30,13 @@ export class CultivoService {
             fechaSiembra: fechaFormateada,
             notasGenerales: formData.notasGenerales?.trim() || `Variedad: ${formData.variedad || 'Ninguna'}`,
             region: formData.region || '',
-            tamanoTerreno: tamanoTerrenoNumerico ? parseInt(tamanoTerrenoNumerico, 10) : null,
-            cantidadSemillas: cantidadSemillasNumerico ? parseInt(cantidadSemillasNumerico, 10) : null,
-            phSueloMin: formData.phSueloMin ? parseFloat(formData.phSueloMin) : null,
-            phSueloMax: formData.phSueloMax ? parseFloat(formData.phSueloMax) : null,
+            tamanoTerreno: tamanoTerrenoNumerico ? parseInt(tamanoTerrenoNumerico, 10) : 0,
+            cantidadSemillas: cantidadSemillasNumerico ? parseInt(cantidadSemillasNumerico, 10) : 0,
+            phSueloMin: formData.phSueloMin ? formData.phSueloMin.toString() : null,
+            phSueloMax: formData.phSueloMax ? formData.phSueloMax.toString() : null,
         };
+
+        console.log('>>>>> PAYLOAD CULTIVO:', JSON.stringify(cultivoPayload, null, 2));
 
         // 4. Crear el Cultivo Base
         const responseCultivo = await api.post('/cultivos', cultivoPayload);
@@ -66,14 +68,17 @@ export class CultivoService {
         }
 
         // 6. Crear la Fase Agrícola (Ciclo 1)
-        const responseFase = await api.post('/fases', {
+        const fasePayload = {
             idCultivo: idCultivoCreado,
             numeroCiclo: 1,
             nombreCiclo: formData.nombreCiclo || 'Ciclo 1',
             fechaInicio: inicioCicloFormateada,
             fechaFin: finCicloFormateada,
             estado: 'Activo'
-        });
+        };
+        console.log('>>>>> PAYLOAD FASE:', JSON.stringify(fasePayload, null, 2));
+
+        const responseFase = await api.post('/fases', fasePayload);
 
         const idCicloCreado = responseFase.data.data.idCiclo;
 
@@ -104,13 +109,15 @@ export class CultivoService {
                 // D. Insertar etapas personalizadas mapeadas desde la UI
                 for (let i = 0; i < formData.etapas.length; i++) {
                     const etapaData = formData.etapas[i];
-                    await api.post('/etapas', {
+                    const etapaPayload = {
                         idCiclo: idCicloCreado,
                         nombreEtapa: etapaData.nombre || `Etapa ${i + 1}`,
                         ordenEtapa: i + 1,
                         fechaInicio: formatoFecha(etapaData.inicio),
                         fechaFin: formatoFecha(etapaData.fin)
-                    });
+                    };
+                    console.log(`>>>>> PAYLOAD ETAPA ${i + 1}:`, JSON.stringify(etapaPayload, null, 2));
+                    await api.post('/etapas', etapaPayload);
                 }
             } catch (errorEtapas) {
                 console.error('Error sincronizando etapas personalizadas:', errorEtapas);
@@ -247,7 +254,7 @@ export class CultivoService {
                     etapaActual = etapasFinalizadas[etapasFinalizadas.length - 1].nombreEtapa + ' (completada)';
                 } else if (etapasOrdenadas.length > 0) {
                     // Aún no empezó la primera etapa
-                    etapaActual = etapasOrdenadas[0].nombreEtapa + ' (próxima)';
+                    etapaActual = etapasOrdenadas[0].nombreEtapa;
                 }
             }
         }

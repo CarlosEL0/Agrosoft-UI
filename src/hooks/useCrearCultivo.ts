@@ -76,11 +76,12 @@ export function useCrearCultivo() {
 
         } catch (error: any) {
             console.error('Error al crear cultivo:', error);
-            const errorMsg = error.response?.data?.message || 'Error al conectar con el servidor para crear el cultivo.';
+            console.log('Detalle del error 400:', JSON.stringify(error.response?.data, null, 2));
+            const errorMsg = error.response?.data?.message || error.response?.data || 'Error al conectar con el servidor para crear el cultivo.';
             if (Platform.OS === 'web') {
                 window.alert('Error: ' + errorMsg);
             } else {
-                Alert.alert('Error', errorMsg);
+                Alert.alert('Error', typeof errorMsg === 'string' ? errorMsg : 'Errores de validación en la petición');
             }
         } finally {
             setIsSubmitting(false);

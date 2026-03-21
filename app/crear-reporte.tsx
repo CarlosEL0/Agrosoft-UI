@@ -84,7 +84,11 @@ function Paso1({
   ];
 
   return (
-    <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+      contentContainerStyle={styles.pasoContent} 
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
       <View style={styles.pasoCard}>
         <Text style={styles.pasoQuestion}>Que tipo de reporte realizaras?</Text>
 
@@ -162,7 +166,11 @@ function Paso2({
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+      contentContainerStyle={styles.pasoContent} 
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
 
       {/* Campos del formulario */}
       <View style={styles.pasoCard}>
@@ -277,10 +285,11 @@ export default function CrearReporteScreen() {
   } = useCrearReporte();
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <View style={styles.safeArea}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
       >
         {/* ── Header ── */}
         <NavBar
@@ -318,7 +327,7 @@ export default function CrearReporteScreen() {
         )}
 
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -327,7 +336,7 @@ export default function CrearReporteScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f2f4f3',
+    backgroundColor: '#ffffff',
   },
 
   // Step indicator

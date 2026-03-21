@@ -131,6 +131,7 @@ async function crearEvento(
     descripcion: descripcion || '',
     observaciones: observaciones || '',
   };
+  console.log('>>>>> PAYLOAD EVENTO:', JSON.stringify(payload, null, 2));
   const { data } = await api.post('/eventos', payload);
   return data.data?.idEvento ?? data.data?.id ?? data.data;
 }
@@ -141,10 +142,11 @@ export async function crearReporteRiego(idCultivo: string, form: Record<string, 
   const idEvento = await crearEvento('riego', idCultivo, desc, form.observaciones, fechaISO);
   const payload = {
     idEvento,
-    cantidadAgua: form.cantidad_agua ? parseFloat(form.cantidad_agua) : undefined,
+    cantidadAgua: parseFloat(form.cantidad_agua || "0"),
     metodoRiego: form.metodo_riego,
-    duracionMinutos: form.duracion_minutos ? parseInt(form.duracion_minutos, 10) : undefined,
+    duracionMinutos: parseInt(form.duracion_minutos || "0", 10),
   };
+  console.log('>>>>> PAYLOAD RIEGO:', JSON.stringify(payload, null, 2));
   return api.post('/riegos', payload);
 }
 
@@ -156,10 +158,11 @@ export async function crearReportePoda(idCultivo: string, form: Record<string, s
     idEvento,
     tipoPoda: form.tipo_poda,
     partesPodadas: form.partes_podadas,
-    porcentajePodado: form.porcentaje_podado ? parseFloat(form.porcentaje_podado) : undefined,
+    porcentajePodado: parseFloat(form.porcentaje_podado || "0"),
     herramientasUtilizadas: form.herramientas,
     estadoPlantaDespues: form.estado_planta,
   };
+  console.log('>>>>> PAYLOAD PODA:', JSON.stringify(payload, null, 2));
   return api.post('/podas', payload);
 }
 
@@ -171,11 +174,12 @@ export async function crearReporteFertilizacion(idCultivo: string, form: Record<
     idEvento,
     tipoFertilizante: form.tipo_fertilizante,
     nombreFertilizante: form.nombre_fertilizante,
-    cantidadAplicada: form.cantidad_aplicada ? parseFloat(form.cantidad_aplicada) : undefined,
+    cantidadAplicada: parseFloat(form.cantidad_applied || form.cantidad_aplicada || "0"),
     unidadMedida: form.unidad_medida,
     metodoAplicacion: form.metodo_aplicacion,
-    costo: form.costo ? parseFloat(form.costo) : undefined,
+    costo: parseFloat(form.costo || "0"),
   };
+  console.log('>>>>> PAYLOAD FERTILIZACION:', JSON.stringify(payload, null, 2));
   return api.post('/fertilizaciones', payload);
 }
 
@@ -188,14 +192,15 @@ export async function crearReporteFumigacion(idCultivo: string, form: Record<str
     nombreProducto: form.nombre_producto,
     tipoProducto: form.tipo_producto,
     ingredienteActivo: form.ingrediente_activo,
-    dosis: form.dosis ? parseFloat(form.dosis) : undefined,
+    dosis: parseFloat(form.dosis || "0"),
     unidadMedida: form.unidad_medida,
-    totalMezclaLitros: form.total_mezcla_litros ? parseFloat(form.total_mezcla_litros) : undefined,
+    totalMezclaLitros: parseFloat(form.total_mezcla_litros || "0"),
     metodoAplicacion: form.metodo_aplicacion,
     plagaObjetivo: form.plaga_objetivo,
-    periodoSeguridadDias: form.periodo_seguridad_dias ? parseInt(form.periodo_seguridad_dias, 10) : undefined,
-    costo: form.costo ? parseFloat(form.costo) : undefined,
+    periodoSeguridadDias: parseInt(form.periodo_seguridad_dias || "0", 10),
+    costo: parseFloat(form.costo || "0"),
   };
+  console.log('>>>>> PAYLOAD FUMIGACION:', JSON.stringify(payload, null, 2));
   return api.post('/fumigaciones', payload);
 }
 
@@ -216,6 +221,7 @@ export async function reportarIrregularidad(idCultivo: string, form: Record<stri
     descripcion: form.descripcion,
     fechaDeteccion: fechaISO,
   };
+  console.log('>>>>> PAYLOAD IRREGULARIDAD:', JSON.stringify(payload, null, 2));
   return api.post('/irregularidades', payload);
 }
 
@@ -227,12 +233,13 @@ export async function registrarCrecimiento(idCultivo: string, form: Record<strin
     idCultivo,
     idEtapa: idEtapaResuelta,
     fechaRegistro: fechaISO,
-    alturaPlanta: form.altura_planta ? parseFloat(form.altura_planta) : 0,
-    grosorTallo: form.grosor_tallo ? parseFloat(form.grosor_tallo) : 0,
-    diametro: form.diametro ? parseFloat(form.diametro) : 0,
+    alturaPlanta: parseFloat(form.altura_planta || "0"),
+    grosorTallo: parseFloat(form.grosor_tallo || "0"),
+    diametro: parseFloat(form.diametro || "0"),
     estadoSalud: form.salud || form.estado_salud || 'Excelente',
     observaciones: form.observaciones || '',
   };
+  console.log('>>>>> PAYLOAD CRECIMIENTO:', JSON.stringify(payload, null, 2));
   return api.post('/crecimiento', payload);
 }
 

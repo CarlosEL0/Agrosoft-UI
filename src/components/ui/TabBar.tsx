@@ -2,6 +2,7 @@ import { Colors } from '@/src/theme/colors';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { HomeTabIcon } from '@/src/components/icons/HomeTabIcon';
 import { TreeTabIcon } from '@/src/components/icons/TreeTabIcon';
@@ -13,9 +14,10 @@ interface TabBarProps {
 
 export function TabBar({ activeTab = 'inicio' }: TabBarProps) {
     const router = useRouter();
+    const insets = useSafeAreaInsets();
 
     return (
-        <View style={styles.tabBar}>
+        <View style={[styles.tabBar, { paddingBottom: Math.max(insets.bottom, 16) }]}>
             <TouchableOpacity
                 style={styles.tabItem}
                 onPress={() => router.push('/(tabs)')}
@@ -59,7 +61,6 @@ const styles = StyleSheet.create({
         borderTopWidth: 1,
         borderTopColor: '#e8e8e8',
         paddingVertical: 10,
-        paddingBottom: 16,
     },
     tabItem: {
         flex: 1,

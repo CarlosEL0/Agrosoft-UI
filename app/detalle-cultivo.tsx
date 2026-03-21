@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
   Alert,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Platform } from 'react-native';
@@ -26,6 +27,7 @@ import { PlantCircleIcon } from '@/src/components/icons/PlantCircleIcon';
 import { PlusIcon } from '@/src/components/icons/PlusIcon';
 import { RobotIcon } from '@/src/components/icons/RobotIcon';
 import { TreeCircleIcon } from '@/src/components/icons/TreeCircleIcon';
+import { NavBar } from '@/src/components/ui/NavBar';
 import { TabBar } from '@/src/components/ui/TabBar';
 import { generarReporteCosechaIA } from '@/src/services/reporteService';
 
@@ -92,19 +94,20 @@ export default function DetalleCultivoScreen() {
   }, [cultivo?.idCiclo]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
+    <View style={styles.safeArea}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         {/* ── Header ── */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <BackIcon />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Detalle cultivo</Text>
-        </View>
+        <NavBar title="Detalle cultivo" onBack={() => router.back()} />
 
         {/* ── Card principal cultivo ── */}
         <View style={styles.mainCard}>
@@ -336,10 +339,11 @@ export default function DetalleCultivoScreen() {
         </View>
 
       </ScrollView>
+    </KeyboardAvoidingView>
 
       {/* ── Tab Bar ── */}
       <TabBar activeTab="cultivos" />
-    </SafeAreaView>
+    </View>
   );
 }
 
