@@ -2,7 +2,7 @@
 
 import { Colors } from '@/src/theme/colors';
 import { useRouter, useLocalSearchParams } from 'expo-router';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dimensions,
   ScrollView,
@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
   Image,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -30,9 +31,48 @@ export default function DetalleReporteScreen() {
   const router = useRouter();
   const { reporte } = useDetalleReporte();
   const { idRef, idCultivo, tipo } = useLocalSearchParams<{ idRef: string; idCultivo: string; tipo: string }>();
+  
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const openImage = (url: string) => {
+    setSelectedImage(url);
+    setModalVisible(true);
+  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
+
+      {/* ── Modal Visualizador de Imagen ── */}
+      <Modal
+        visible={modalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <TouchableOpacity 
+            style={styles.modalCloseArea} 
+            activeOpacity={1} 
+            onPress={() => setModalVisible(false)} 
+          />
+          <View style={styles.modalContent}>
+            {selectedImage && (
+              <Image
+                source={{ uri: selectedImage }}
+                style={styles.fullImage}
+                resizeMode="contain"
+              />
+            )}
+            <TouchableOpacity 
+              style={styles.closeBtn} 
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.closeBtnText}>Cerrar</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       {/* ── Header ── */}
       <View style={styles.header}>
@@ -108,12 +148,13 @@ export default function DetalleReporteScreen() {
           <View style={styles.fotosRow}>
             {reporte.fotos.length > 0 ? (
               reporte.fotos.map((url, index) => (
-                <Image
-                  key={index}
-                  source={{ uri: url || undefined }}
-                  style={styles.fotoImage}
-                  resizeMode="cover"
-                />
+                <TouchableOpacity key={index} activeOpacity={0.9} onPress={() => url && openImage(url)}>
+                  <Image
+                    source={{ uri: url || undefined }}
+                    style={styles.fotoImage}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
               ))
             ) : (
               <View style={styles.fotoPlaceholder}>
@@ -296,5 +337,44 @@ const styles = StyleSheet.create({
     fontFamily: 'Rubik_600SemiBold',
     fontSize: 16,
     color: '#fff',
+  },
+
+  // Modal Visualizador
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalCloseArea: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  modalContent: {
+    width: '100%',
+    height: '80%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullImage: {
+    width: '95%',
+    height: '100%',
+    borderRadius: 8,
+  },
+  closeBtn: {
+    position: 'absolute',
+    bottom: -60,
+    backgroundColor: '#fff',
+    paddingHorizontal: 30,
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  closeBtnText: {
+    fontFamily: 'Rubik_600SemiBold',
+    fontSize: 15,
+    color: Colors.textDark,
   },
 });
