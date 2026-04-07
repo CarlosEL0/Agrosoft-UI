@@ -125,8 +125,13 @@ export function useCrearReporte() {
             }
             if (algunErrorImagen) {
                 Alert.alert('Aviso', 'El reporte se guardó, pero hubo errores al subir algunas fotos.');
+            } else {
+                Alert.alert('Éxito', 'Reporte creado correctamente.');
             }
             setIsUploading(false);
+        } else {
+            // Caso sin fotos
+            Alert.alert('Éxito', 'Reporte creado correctamente.');
         }
 
         router.back();
