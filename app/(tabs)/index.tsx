@@ -127,14 +127,14 @@ export default function HomeScreen() {
 
 
         {/* ── ¿Qué deseas hacer? ── */}
-        <Text style={styles.actionTitle}>Que deseas hacer?</Text>
+        <Text style={styles.actionTitle}>¿Qué deseas hacer?</Text>
         <View style={styles.actionsContainer}>
           <View style={styles.actionsRow}>
             <TouchableOpacity style={styles.actionPill} onPress={() => router.push('./crear-cultivo')}>
               <Text style={styles.actionPillText}>Crear cultivo</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.actionPill} onPress={() => router.push('./(tabs)/cultivos')}>
-              <Text style={styles.actionPillText}>ver cultivos</Text>
+              <Text style={styles.actionPillText}>Ver cultivos</Text>
             </TouchableOpacity>
             <TouchableOpacity style={[styles.actionPill, styles.actionPill]} onPress={() => router.push('./historial-general')}>
               <Text style={styles.actionPillText}>Historial</Text>
