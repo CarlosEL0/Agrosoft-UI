@@ -8,19 +8,28 @@ interface NavBarProps {
     title: string;
     onBack?: () => void;
     showBack?: boolean;
+    rightElement?: React.ReactNode;
 }
 
-export function NavBar({ title, onBack, showBack = true }: NavBarProps) {
+export function NavBar({ title, onBack, showBack = true, rightElement }: NavBarProps) {
     const insets = useSafeAreaInsets();
     
     return (
         <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) }]}>
-            {showBack && (
-                <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
-                    <BackIcon />
-                </TouchableOpacity>
+            <View style={styles.leftRow}>
+                {showBack && (
+                    <TouchableOpacity onPress={onBack} activeOpacity={0.7}>
+                        <BackIcon />
+                    </TouchableOpacity>
+                )}
+                <Text style={styles.headerTitle}>{title}</Text>
+            </View>
+            
+            {rightElement && (
+                <View style={styles.rightContainer}>
+                    {rightElement}
+                </View>
             )}
-            <Text style={styles.headerTitle}>{title}</Text>
         </View>
     );
 }
@@ -29,9 +38,17 @@ const styles = StyleSheet.create({
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 14,
+        justifyContent: 'space-between',
         paddingHorizontal: 22,
         paddingBottom: 8,
+    },
+    leftRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 14,
+    },
+    rightContainer: {
+        alignItems: 'flex-end',
     },
     headerTitle: {
         fontFamily: 'Rubik_500Medium',

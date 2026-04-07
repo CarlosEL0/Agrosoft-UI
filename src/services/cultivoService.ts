@@ -13,6 +13,13 @@ export class CultivoService {
     }
 
     /**
+     * Elimina un cultivo por su ID.
+     */
+    static async eliminarCultivo(id: string): Promise<void> {
+        await api.delete(`/cultivos/${id}`);
+    }
+
+    /**
      * Crea un cultivo completo con su Fase Agrícola y Etapas personalizadas sincronizadas
      * con el backend bajo el patrón de Service Layer (SOA Frontend).
      */

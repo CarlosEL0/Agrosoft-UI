@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
   Alert,
+  ActivityIndicator,
   KeyboardAvoidingView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -30,6 +31,8 @@ import { TreeCircleIcon } from '@/src/components/icons/TreeCircleIcon';
 import { NavBar } from '@/src/components/ui/NavBar';
 import { TabBar } from '@/src/components/ui/TabBar';
 import { generarReporteCosechaIA } from '@/src/services/reporteService';
+import { CultivoService } from '@/src/services/cultivoService';
+import { TrashIcon } from '@/src/components/icons/TrashIcon';
 
 
 
@@ -71,6 +74,54 @@ export default function DetalleCultivoScreen() {
   const [calidadCultivo, setCalidadCultivo] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [reporteCosecha, setReporteCosecha] = useState<any | null>(null);
+  const [eliminando, setEliminando] = useState(false);
+
+  const handleEliminar = async () => {
+    if (!idCultivo) return;
+
+    const confirmDelete = () => {
+      Alert.alert(
+        'Eliminar cultivo',
+        '¿Estás seguro de que quieres eliminar este cultivo? Esta acción no se puede deshacer.',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Eliminar',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                setEliminando(true);
+                await CultivoService.eliminarCultivo(idCultivo);
+                Alert.alert('Éxito', 'Cultivo eliminado correctamente');
+                router.replace('/(tabs)/cultivos');
+              } catch (error) {
+                console.error('Error al eliminar cultivo:', error);
+                Alert.alert('Error', 'No se pudo eliminar el cultivo. Inténtalo de nuevo.');
+              } finally {
+                setEliminando(false);
+              }
+            },
+          },
+        ]
+      );
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('¿Estás seguro de que quieres eliminar este cultivo?')) {
+        try {
+          setEliminando(true);
+          await CultivoService.eliminarCultivo(idCultivo);
+          router.replace('/(tabs)/cultivos');
+        } catch (error) {
+          window.alert('Error al eliminar el cultivo');
+        } finally {
+          setEliminando(false);
+        }
+      }
+    } else {
+      confirmDelete();
+    }
+  };
 
   // Cargar reporte persistido localmente si existe
   useEffect(() => {
@@ -106,10 +157,20 @@ export default function DetalleCultivoScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-        {/* ── Header ── */}
-        <NavBar title="Detalle cultivo" onBack={() => router.back()} />
-
-        {/* ── Card principal cultivo ── */}
+          <NavBar 
+            title="Detalle cultivo" 
+            onBack={() => router.back()} 
+            rightElement={
+              <TouchableOpacity onPress={handleEliminar} disabled={eliminando} style={{ padding: 8 }}>
+                {eliminando ? (
+                  <ActivityIndicator size="small" color={Colors.buttonBg} />
+                ) : (
+                  <TrashIcon color={Colors.buttonBg} size={24} />
+                )}
+              </TouchableOpacity>
+            }
+          />
+          {/* ── Card principal cultivo ── */}
         <View style={styles.mainCard}>
           <View style={styles.mainCardInner}>
             {/* Imagen cultivo */}
