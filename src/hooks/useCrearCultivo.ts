@@ -24,6 +24,7 @@ export function useCrearCultivo() {
         notasGenerales: '',
         phSueloMin: '',
         phSueloMax: '',
+        usarIA: false,
     });
 
     const titles = ['Crear cultivo', 'Datos del cultivo', 'Datos del ciclo', 'Etapas del ciclo', 'Confirmar cultivo'];

@@ -3,6 +3,16 @@ import { CultivoFormData } from '@/src/utils/formSchemas';
 
 export class CultivoService {
     /**
+     * Predice las etapas de un cultivo usando IA basándose en el nombre, tipo y región.
+     */
+    static async predecirEtapasIA(nombre: string, tipo: string, region: string) {
+        const response = await api.get('/fases/predecir-etapas', {
+            params: { nombre, tipo, region }
+        });
+        return response.data?.data as Record<string, number>;
+    }
+
+    /**
      * Crea un cultivo completo con su Fase Agrícola y Etapas personalizadas sincronizadas
      * con el backend bajo el patrón de Service Layer (SOA Frontend).
      */
@@ -82,7 +92,7 @@ export class CultivoService {
 
         const idCicloCreado = responseFase.data.data.idCiclo;
 
-        // 7. Sincronizar Etapas Personalizadas y eliminar las generadas por defecto en el backend
+        // 7. Sincronizar Etapas (Ya sea que vengan de IA o manuales, sincronizamos para persistir cambios)
         if (idCicloCreado && formData.etapas.length > 0) {
             try {
                 // A. Obtener etapas autogeneradas por el Java Backend

@@ -5,6 +5,7 @@ import { Colors } from '@/src/theme/colors';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
+  ActivityIndicator,
   Alert,
   Dimensions,
   KeyboardAvoidingView,
@@ -32,6 +33,8 @@ import { CultivoFormData, generarEtapasPreview, tiposCultivo, Etapa } from '@/sr
 import { useCrearCultivo } from '@/src/hooks/useCrearCultivo';
 
 const { width } = Dimensions.get('window');
+
+import { CultivoService } from '@/src/services/cultivoService';
 
 function formatFecha(date: Date): string {
   const dia = String(date.getDate()).padStart(2, '0');
@@ -529,6 +532,48 @@ function Paso4({
   const [localEtapas, setLocalEtapas] = React.useState<Etapa[]>(() =>
     data.etapas.length > 0 ? data.etapas : generarEtapasPreview(data.fechaSiembra)
   );
+  const [cargandoIA, setCargandoIA] = useState(false);
+
+  const handleGenerarConIA = async () => {
+    try {
+      setCargandoIA(true);
+      const nombre = data.tipoCultivo === 'Otro' ? data.nombrePersonalizado : data.tipoCultivo;
+      const predicciones = await CultivoService.predecirEtapasIA(nombre, data.tipoCultivoDetalle, data.region);
+      
+      // Mapear las predicciones a nuestro formato de etapas
+      const nombresEtapas = ['Germinación', 'Plántula', 'Crecimiento', 'Floración', 'Cosecha'];
+      const clavesBackend = ['germinacion', 'plantula', 'crecimiento', 'floracion', 'cosecha'];
+      
+      let fechaActual = parseFechaEtapa(data.fechaSiembra);
+      const nuevasEtapas: Etapa[] = [];
+
+      clavesBackend.forEach((clave, idx) => {
+        const dias = predicciones[clave] || 15;
+        const inicio = formatFecha(fechaActual);
+        const fechaFin = new Date(fechaActual);
+        fechaFin.setDate(fechaFin.getDate() + dias);
+        const fin = formatFecha(fechaFin);
+        
+        nuevasEtapas.push({
+          nombre: nombresEtapas[idx],
+          inicio,
+          fin,
+          dias
+        });
+        
+        fechaActual = fechaFin;
+      });
+
+      updateStore(nuevasEtapas);
+      onChange('usarIA', true);
+    } catch (error) {
+      console.error('Error prediciendo etapas:', error);
+      Alert.alert('Error', 'No se pudo conectar con la IA. Intenta manualmente.');
+    } finally {
+      setCargandoIA(false);
+    }
+  };
+
   // Controla qué picker está abierto: { index, campo: 'inicio' | 'fin' } o null
   const [activePicker, setActivePicker] = useState<{ index: number; campo: 'inicio' | 'fin' } | null>(null);
 
@@ -631,87 +676,117 @@ function Paso4({
        keyboardShouldPersistTaps="handled"
      >
       <View style={styles.pasoCard}>
-        <Text style={styles.pasoQuestion}>Configura las etapas</Text>
-
-        {localEtapas.map((etapa, index) => (
-          <View key={index} style={styles.etapaWrapper}>
-            <View style={styles.etapaCard}>
-              <View style={styles.etapaLeft}>
-                <View style={styles.etapaNumBadge}>
-                  <Text style={styles.etapaNum}>{index + 1}</Text>
-                </View>
-              </View>
-              <View style={[styles.etapaInfo, { flex: 1, paddingLeft: 10 }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 1 }}>
-                    <TextInput
-                      style={[styles.etapaNombre, { padding: 0, fontSize: 17, color: '#1A2521', fontFamily: 'Rubik_600SemiBold', marginRight: 4, width: Math.max(70, etapa.nombre.length * 9.5) }]}
-                      value={etapa.nombre}
-                      onChangeText={(val) => handleChangeEtapa(index, 'nombre', val)}
-                    />
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Text style={{ color: '#1A2521', fontSize: 13, fontFamily: 'Rubik_500Medium' }}>(</Text>
-                      <TextInput
-                        style={{ padding: 0, width: Math.max(10, String(etapa.dias).length * 9), fontSize: 13, color: '#1A2521', fontFamily: 'Rubik_500Medium', textAlign: 'left' }}
-                        value={String(etapa.dias)}
-                        keyboardType="numeric"
-                        onChangeText={(val) => handleChangeEtapa(index, 'dias', parseInt(val) || 0)}
-                      />
-                      <Text style={{ color: '#1A2521', fontSize: 13, fontFamily: 'Rubik_500Medium', marginLeft: 2 }}>Días)</Text>
-                    </View>
-                  </View>
-
-                  {localEtapas.length > 1 && (
-                    <TouchableOpacity onPress={() => handleRemove(index)} style={{ paddingLeft: 8 }}>
-                      <TrashIcon size={22} color="#4A5D54" />
-                    </TouchableOpacity>
-                  )}
-                </View>
-
-                {/* Campos de fecha con picker nativo */}
-                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
-                  {/* Fecha Inicio */}
-                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1.1 }}>
-                    <Text style={{ fontFamily: 'Rubik_600SemiBold', fontSize: 13, color: '#1A2521', marginRight: 4, width: 38 }}>Inicio</Text>
-                    <TouchableOpacity
-                      style={{ backgroundColor: '#DDE6DF', borderRadius: 8, paddingVertical: 5, paddingHorizontal: 4, flex: 1, alignItems: 'center' }}
-                      onPress={() => setActivePicker({ index, campo: 'inicio' })}
-                      activeOpacity={0.75}
-                    >
-                      <Text style={{ color: etapa.inicio ? '#1A2521' : '#a0b8aa', fontSize: 13, fontFamily: 'Rubik_400Regular' }}>
-                        {etapa.inicio || 'DD/MM/AA'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Fecha Fin */}
-                  <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
-                    <Text style={{ fontFamily: 'Rubik_600SemiBold', fontSize: 13, color: '#1A2521', marginRight: 4, width: 22 }}>Fin</Text>
-                    <TouchableOpacity
-                      style={{ backgroundColor: '#2D3E35', borderRadius: 8, paddingVertical: 5, paddingHorizontal: 4, flex: 1, alignItems: 'center' }}
-                      onPress={() => setActivePicker({ index, campo: 'fin' })}
-                      activeOpacity={0.75}
-                    >
-                      <Text style={{ color: etapa.fin ? '#fff' : '#a0b8aa', fontSize: 13, fontFamily: 'Rubik_400Regular' }}>
-                        {etapa.fin || 'DD/MM/AA'}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            </View>
-
-            {index < localEtapas.length - 1 && (
-              <View style={styles.etapaConnector} />
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+          <Text style={[styles.pasoQuestion, { marginBottom: 0 }]}>Configura las etapas</Text>
+          <TouchableOpacity 
+            style={{ 
+              backgroundColor: data.usarIA ? '#2D3E35' : '#DDE6DF', 
+              paddingHorizontal: 12, 
+              paddingVertical: 6, 
+              borderRadius: 20,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6
+            }}
+            onPress={handleGenerarConIA}
+            disabled={cargandoIA}
+          >
+            {cargandoIA ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <RobotIcon size={16} color={data.usarIA ? '#fff' : '#2D3E35'} />
             )}
-          </View>
-        ))}
-
-        <View style={styles.etapaActions}>
-          <TouchableOpacity style={styles.etapaActionBtn} onPress={handleAdd}>
-            <Text style={styles.etapaActionText}>+ Agregar etapa</Text>
+            <Text style={{ 
+              fontFamily: 'Rubik_500Medium', 
+              fontSize: 12, 
+              color: data.usarIA ? '#fff' : '#2D3E35' 
+            }}>
+              {cargandoIA ? 'Calculando...' : data.usarIA ? 'Actualizar con IA' : 'Generar con IA'}
+            </Text>
           </TouchableOpacity>
         </View>
+
+        <View style={{ marginBottom: 16 }}>
+          {localEtapas.map((etapa, index) => (
+              <View key={index} style={styles.etapaWrapper}>
+                <View style={styles.etapaCard}>
+                  <View style={styles.etapaLeft}>
+                    <View style={styles.etapaNumBadge}>
+                      <Text style={styles.etapaNum}>{index + 1}</Text>
+                    </View>
+                  </View>
+                  <View style={[styles.etapaInfo, { flex: 1, paddingLeft: 10 }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 1 }}>
+                        <TextInput
+                          style={[styles.etapaNombre, { padding: 0, fontSize: 17, color: '#1A2521', fontFamily: 'Rubik_600SemiBold', marginRight: 4, width: Math.max(70, etapa.nombre.length * 9.5) }]}
+                          value={etapa.nombre}
+                          onChangeText={(val) => handleChangeEtapa(index, 'nombre', val)}
+                        />
+                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                          <Text style={{ color: '#1A2521', fontSize: 13, fontFamily: 'Rubik_500Medium' }}>(</Text>
+                          <TextInput
+                            style={{ padding: 0, width: Math.max(10, String(etapa.dias).length * 9), fontSize: 13, color: '#1A2521', fontFamily: 'Rubik_500Medium', textAlign: 'left' }}
+                            value={String(etapa.dias)}
+                            keyboardType="numeric"
+                            onChangeText={(val) => handleChangeEtapa(index, 'dias', parseInt(val) || 0)}
+                          />
+                          <Text style={{ color: '#1A2521', fontSize: 13, fontFamily: 'Rubik_500Medium', marginLeft: 2 }}>Días)</Text>
+                        </View>
+                      </View>
+
+                      {localEtapas.length > 1 && (
+                        <TouchableOpacity onPress={() => handleRemove(index)} style={{ paddingLeft: 8 }}>
+                          <TrashIcon size={22} color="#4A5D54" />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+
+                    {/* Campos de fecha con picker nativo */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 6 }}>
+                      {/* Fecha Inicio */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1.1 }}>
+                        <Text style={{ fontFamily: 'Rubik_600SemiBold', fontSize: 13, color: '#1A2521', marginRight: 4, width: 38 }}>Inicio</Text>
+                        <TouchableOpacity
+                          style={{ backgroundColor: '#DDE6DF', borderRadius: 8, paddingVertical: 5, paddingHorizontal: 4, flex: 1, alignItems: 'center' }}
+                          onPress={() => setActivePicker({ index, campo: 'inicio' })}
+                          activeOpacity={0.75}
+                        >
+                          <Text style={{ color: etapa.inicio ? '#1A2521' : '#a0b8aa', fontSize: 13, fontFamily: 'Rubik_400Regular' }}>
+                            {etapa.inicio || 'DD/MM/AA'}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+
+                      {/* Fecha Fin */}
+                      <View style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                        <Text style={{ fontFamily: 'Rubik_600SemiBold', fontSize: 13, color: '#1A2521', marginRight: 4, width: 22 }}>Fin</Text>
+                        <TouchableOpacity
+                          style={{ backgroundColor: '#2D3E35', borderRadius: 8, paddingVertical: 5, paddingHorizontal: 4, flex: 1, alignItems: 'center' }}
+                          onPress={() => setActivePicker({ index, campo: 'fin' })}
+                          activeOpacity={0.75}
+                        >
+                          <Text style={{ color: etapa.fin ? '#fff' : '#a0b8aa', fontSize: 13, fontFamily: 'Rubik_400Regular' }}>
+                            {etapa.fin || 'DD/MM/AA'}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+
+                {index < localEtapas.length - 1 && (
+                  <View style={styles.etapaConnector} />
+                )}
+              </View>
+            ))}
+
+            <View style={styles.etapaActions}>
+              <TouchableOpacity style={styles.etapaActionBtn} onPress={handleAdd}>
+                <Text style={styles.etapaActionText}>+ Agregar etapa</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
       </View>
 
       <TouchableOpacity style={styles.continueBtn} onPress={onNext} activeOpacity={0.85}>
@@ -745,8 +820,8 @@ function Paso5({
   const resumen = [
     { label: 'Siembra', value: data.fechaSiembra || 'Seleccionada hoy' },
     { label: 'Semillas', value: data.cantidadSemillas || '80 kg' },
-    { label: 'Etapas', value: String(etapas.length) },
-    { label: 'Cosecha estimada', value: etapas[etapas.length - 1].fin },
+    { label: 'Etapas', value: data.usarIA ? 'Calculado por IA' : String(etapas.length) },
+    { label: 'Cosecha estimada', value: data.usarIA ? 'Calculado por IA' : etapas[etapas.length - 1].fin },
     { label: 'Terreno', value: data.tamanoTerreno || '15 m2' },
   ];
 

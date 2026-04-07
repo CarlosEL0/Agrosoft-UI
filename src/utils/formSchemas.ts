@@ -90,6 +90,7 @@ export interface CultivoFormData {
     notasGenerales: string;
     phSueloMin: string;
     phSueloMax: string;
+    usarIA: boolean;
 }
 
 export const tiposCultivo = ['Maiz', 'Frijol', 'Lechuga', 'Otro'];
