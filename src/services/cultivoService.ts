@@ -248,12 +248,21 @@ export class CultivoService {
 
         // 4. Obtener etapas de la fase activa y calcular cuál está activa hoy
         let etapaActual = 'Sin etapa';
+        let etapasDeFase: any[] = [];
         if (faseActiva?.idCiclo) {
             const resEtapas = await api.get(`/etapas/ciclo/${faseActiva.idCiclo}`);
             const etapas: any[] = resEtapas.data?.data || [];
 
             // Ordenar por fechaInicio
             const etapasOrdenadas = [...etapas].sort((a, b) => fechaLocal(a.fechaInicio).getTime() - fechaLocal(b.fechaInicio).getTime());
+            etapasDeFase = etapasOrdenadas.map(e => ({
+                id: e.idEtapa,
+                nombre: e.nombreEtapa || e.nombre || e.etapa,
+                inicio: e.fechaInicio,
+                fin: e.fechaFin,
+                orden: e.ordenEtapa,
+                dias: Math.round((fechaLocal(e.fechaFin).getTime() - fechaLocal(e.fechaInicio).getTime()) / (1000 * 60 * 60 * 24))
+            }));
 
             // Buscar la etapa cuyo rango de fechas incluye hoy
             const etapaVigente = etapasOrdenadas.find(e => {
@@ -356,6 +365,7 @@ export class CultivoService {
             riesgo,
             resumenIA,
             idCiclo: faseActiva?.idCiclo || null,
+            etapas: etapasDeFase,
         };
     }
 }

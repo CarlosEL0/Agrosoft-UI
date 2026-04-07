@@ -28,6 +28,7 @@ import { PlantCircleIcon } from '@/src/components/icons/PlantCircleIcon';
 import { PlusIcon } from '@/src/components/icons/PlusIcon';
 import { RobotIcon } from '@/src/components/icons/RobotIcon';
 import { TreeCircleIcon } from '@/src/components/icons/TreeCircleIcon';
+import { CalendarIcon } from '@/src/components/icons/CalendarIcon';
 import { NavBar } from '@/src/components/ui/NavBar';
 import { TabBar } from '@/src/components/ui/TabBar';
 import { generarReporteCosechaIA } from '@/src/services/reporteService';
@@ -48,6 +49,12 @@ function filterDecimal(text: string): string {
   const parts = cleaned.split('.');
   if (parts.length > 2) return parts[0] + '.' + parts.slice(1).join('');
   return cleaned;
+}
+
+function formatFechaCorta(iso: string): string {
+  if (!iso) return 'N/D';
+  const [y, m, d] = iso.split('T')[0].split('-');
+  return `${d}/${m}/${y.slice(-2)}`;
 }
 
 // ── Barra de progreso ─────────────────────────────────────────────────────────
@@ -171,7 +178,11 @@ export default function DetalleCultivoScreen() {
             }
           />
           {/* ── Card principal cultivo ── */}
-        <View style={styles.mainCard}>
+        <TouchableOpacity 
+          style={styles.mainCard}
+          activeOpacity={0.9}
+          onPress={() => router.push({ pathname: '/etapas-cultivo', params: { idCultivo: idCultivo ?? '' } })}
+        >
           <View style={styles.mainCardInner}>
             {/* Imagen cultivo */}
             <View style={styles.cultivoImageBox}>
@@ -181,7 +192,10 @@ export default function DetalleCultivoScreen() {
 
             {/* Info ciclo */}
             <View style={styles.cicloInfo}>
-              <Text style={styles.cicloNombre}>{cultivo.faseActual}</Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Text style={styles.cicloNombre}>{cultivo.faseActual}</Text>
+                <Text style={{ fontSize: 18, color: Colors.primary }}>→</Text>
+              </View>
               <Text style={styles.cicloSubtitle}>{cultivo.ciclo}</Text>
               <Text style={styles.cicloDias}>
                 Día {cultivo.diaActual} de {cultivo.diaTotal}{"  "}
@@ -190,7 +204,7 @@ export default function DetalleCultivoScreen() {
               <ProgressBar progress={cultivo.progreso} />
             </View>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* ── Botones de acción 2x2 ── */}
         {/* ── Botones de acción ── */}
@@ -225,6 +239,7 @@ export default function DetalleCultivoScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* ── Card cierre cultivo ── */}
         {((cultivo.progreso >= 100 || cultivo.diaActual >= cultivo.diaTotal) && cultivo?.idCiclo && !reporteCosecha) && (
           <View style={styles.cierreCard}>
             <Text style={styles.cierreTitle}>Cierre del cultivo</Text>
@@ -606,6 +621,7 @@ const styles = StyleSheet.create({
     color: Colors.textDark,
     lineHeight: 22,
   },
+  
   cierreCard: {
     backgroundColor: '#fff',
     borderRadius: 20,
