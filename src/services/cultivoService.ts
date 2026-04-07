@@ -249,20 +249,51 @@ export class CultivoService {
         // 4. Obtener etapas de la fase activa y calcular cuál está activa hoy
         let etapaActual = 'Sin etapa';
         let etapasDeFase: any[] = [];
+        let diaActualCalculado = 0;
+        let diaTotalCalculado = 0;
+        let progresoCalculado = 0;
+
         if (faseActiva?.idCiclo) {
             const resEtapas = await api.get(`/etapas/ciclo/${faseActiva.idCiclo}`);
             const etapas: any[] = resEtapas.data?.data || [];
 
             // Ordenar por fechaInicio
             const etapasOrdenadas = [...etapas].sort((a, b) => fechaLocal(a.fechaInicio).getTime() - fechaLocal(b.fechaInicio).getTime());
-            etapasDeFase = etapasOrdenadas.map(e => ({
-                id: e.idEtapa,
-                nombre: e.nombreEtapa || e.nombre || e.etapa,
-                inicio: e.fechaInicio,
-                fin: e.fechaFin,
-                orden: e.ordenEtapa,
-                dias: Math.round((fechaLocal(e.fechaFin).getTime() - fechaLocal(e.fechaInicio).getTime()) / (1000 * 60 * 60 * 24))
-            }));
+            
+            // Mapear etapas y calcular duración total basada en la suma de días de cada etapa
+            etapasDeFase = etapasOrdenadas.map(e => {
+                const inicio = fechaLocal(e.fechaInicio);
+                const fin = fechaLocal(e.fechaFin);
+                const duracion = Math.round((fin.getTime() - inicio.getTime()) / (1000 * 60 * 60 * 24));
+                diaTotalCalculado += duracion;
+                return {
+                    id: e.idEtapa,
+                    nombre: e.nombreEtapa || e.nombre || e.etapa,
+                    inicio: e.fechaInicio,
+                    fin: e.fechaFin,
+                    orden: e.ordenEtapa,
+                    dias: duracion
+                };
+            });
+
+            // Calcular día actual basado en el inicio de la primera etapa
+            if (etapasOrdenadas.length > 0) {
+                const inicioPrimeraEtapa = fechaLocal(etapasOrdenadas[0].fechaInicio);
+                const finUltimaEtapa = fechaLocal(etapasOrdenadas[etapasOrdenadas.length - 1].fechaFin);
+                
+                if (hoy < inicioPrimeraEtapa) {
+                    diaActualCalculado = 0;
+                } else if (hoy > finUltimaEtapa) {
+                    diaActualCalculado = diaTotalCalculado;
+                } else {
+                    // +1 para que el primer día sea "Día 1"
+                    diaActualCalculado = Math.floor((hoy.getTime() - inicioPrimeraEtapa.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                }
+                
+                // Asegurar que el día actual no exceda el total
+                diaActualCalculado = Math.min(diaActualCalculado, diaTotalCalculado);
+                progresoCalculado = diaTotalCalculado > 0 ? Math.round((diaActualCalculado / diaTotalCalculado) * 100) : 0;
+            }
 
             // Buscar la etapa cuyo rango de fechas incluye hoy
             const etapaVigente = etapasOrdenadas.find(e => {
@@ -283,6 +314,11 @@ export class CultivoService {
                     etapaActual = etapasOrdenadas[0].nombreEtapa;
                 }
             }
+        } else {
+            // Fallback si no hay etapas: usar fechas de la fase
+            diaActualCalculado = diaActual;
+            diaTotalCalculado = diaTotal;
+            progresoCalculado = progreso;
         }
 
         // 5. Calcular Salud y Riesgo a partir de irregularidades activas y último registro de crecimiento
@@ -357,9 +393,9 @@ export class CultivoService {
         return {
             nombre: cultivo?.nombreCultivo || 'Cultivo',
             ciclo: cicloNombre,
-            diaActual: Math.max(0, diaActual),
-            diaTotal: Math.max(1, diaTotal),
-            progreso,
+            diaActual: diaActualCalculado,
+            diaTotal: diaTotalCalculado,
+            progreso: progresoCalculado,
             salud,
             faseActual: etapaActual,
             riesgo,
