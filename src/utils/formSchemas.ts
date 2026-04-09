@@ -75,7 +75,6 @@ export interface Etapa {
 
 export interface CultivoFormData {
     tipoCultivo: string;
-    variedad: string;
     tipoCultivoDetalle: string;
     tamanoTerreno: string;
     cantidadSemillas: string;

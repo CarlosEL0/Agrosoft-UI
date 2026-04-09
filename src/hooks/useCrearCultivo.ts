@@ -10,7 +10,6 @@ export function useCrearCultivo() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState<CultivoFormData>({
         tipoCultivo: '',
-        variedad: '',
         tipoCultivoDetalle: '',
         tamanoTerreno: '',
         cantidadSemillas: '',

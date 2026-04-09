@@ -147,17 +147,6 @@ function Paso1({
             />
           </View>
         )}
-
-        <View>
-          <Text style={styles.fieldLabel}>Variedad (Opcional)</Text>
-          <TextInput
-            style={styles.textInput}
-            placeholder="Ingrese la variedad"
-            placeholderTextColor={Colors.textPlaceholder}
-            value={data.variedad}
-            onChangeText={(v) => onChange('variedad', v)}
-          />
-        </View>
       </View>
 
       <TouchableOpacity
@@ -214,7 +203,9 @@ function Paso2({
         {/* Preview cultivo seleccionado */}
         <View style={styles.cultivoPreview}>
           <PlantCircleIcon size={72} />
-          <Text style={styles.cultivoPreviewNombre}>{data.tipoCultivo}</Text>
+          <Text style={styles.cultivoPreviewNombre}>
+            {data.tipoCultivo === 'Otro' ? data.nombrePersonalizado : data.tipoCultivo}
+          </Text>
         </View>
 
         {/* Categoría */}
@@ -820,8 +811,8 @@ function Paso5({
   const resumen = [
     { label: 'Siembra', value: data.fechaSiembra || 'Seleccionada hoy' },
     { label: 'Semillas', value: data.cantidadSemillas || '80 kg' },
-    { label: 'Etapas', value: data.usarIA ? 'Calculado por IA' : String(etapas.length) },
-    { label: 'Cosecha estimada', value: data.usarIA ? 'Calculado por IA' : etapas[etapas.length - 1].fin },
+    { label: 'Etapas', value: String(etapas.length) },
+    { label: 'Cosecha estimada', value: etapas[etapas.length - 1].fin },
     { label: 'Terreno', value: data.tamanoTerreno || '15 m2' },
   ];
 
@@ -836,7 +827,9 @@ function Paso5({
 
         <View style={styles.resumenCard}>
           <PlantCircleIcon size={64} />
-          <Text style={styles.resumenNombre}>{data.tipoCultivo || 'Maiz'}</Text>
+          <Text style={styles.resumenNombre}>
+            {data.tipoCultivo === 'Otro' ? data.nombrePersonalizado : data.tipoCultivo || 'Maiz'}
+          </Text>
 
           {resumen.map((item, i) => (
             <View key={i} style={{ width: '100%' }}>
@@ -857,7 +850,9 @@ function Paso5({
             </View>
           </View>
           <View style={styles.iaBody}>
-            <Text style={styles.iaText}>Comenzaré a monitorear tu {data.tipoCultivo || 'cultivo'} desde hoy.</Text>
+            <Text style={styles.iaText}>
+              Comenzaré a monitorear tu {data.tipoCultivo === 'Otro' ? data.nombrePersonalizado : data.tipoCultivo || 'cultivo'} desde hoy.
+            </Text>
             <CheckIcon />
           </View>
         </View>
