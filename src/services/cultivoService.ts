@@ -45,7 +45,7 @@ export class CultivoService {
             nombreCultivo: formData.tipoCultivo === 'Otro' ? formData.nombrePersonalizado : formData.tipoCultivo,
             tipoCultivo: formData.tipoCultivoDetalle || 'Vegetal',
             fechaSiembra: fechaFormateada,
-            notasGenerales: formData.notasGenerales?.trim() || `Variedad: ${formData.variedad || 'Ninguna'}`,
+            notasGenerales: formData.notasGenerales?.trim() || '',
             region: formData.region || '',
             tamanoTerreno: tamanoTerrenoNumerico ? parseInt(tamanoTerrenoNumerico, 10) : 0,
             cantidadSemillas: cantidadSemillasNumerico ? parseInt(cantidadSemillasNumerico, 10) : 0,
