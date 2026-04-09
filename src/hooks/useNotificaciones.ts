@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
-import { getNotificacionesDelUsuario, marcarNotificacionLeida } from '@/src/services/notificationService';
+import { getNotificacionesDelUsuario, marcarNotificacionLeida, ejecutarRevisionEtapas } from '@/src/services/notificationService';
 
 type NotificacionItem = {
   idNotificacion: string;
@@ -32,6 +32,15 @@ export function useNotificaciones() {
         setItems([]);
         return;
       }
+
+      // 1. Trigger manual check on backend so it generates new ones if a stage finished
+      try {
+        await ejecutarRevisionEtapas();
+      } catch (err) {
+        console.warn('Error en revisión manual de etapas:', err);
+      }
+
+      // 2. Fetch notifications from DB
       const res = await getNotificacionesDelUsuario(userId);
       const data = res.data?.data || [];
       console.log('Notificaciones recibidas:', data);

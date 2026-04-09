@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 22, paddingBottom: 24, gap: 12 },
   itemCard: { flexDirection: 'row', backgroundColor: '#fff', borderRadius: 14, padding: 14, gap: 12 },
-  itemCardUnread: { borderWidth: 1, borderColor: Colors.primary },
+  itemCardUnread: {  },
   itemLeft: { width: 46, height: 46, borderRadius: 23, backgroundColor: '#e8ede9', alignItems: 'center', justifyContent: 'center' },
   itemInfo: { flex: 1, gap: 4 },
   itemTitle: { fontFamily: 'Rubik_500Medium', color: Colors.textDark, fontSize: 16 },

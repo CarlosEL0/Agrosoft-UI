@@ -9,8 +9,6 @@ export function BellIcon() {
                 stroke={Colors.textDark} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
             <Path d="M13.73 21a2 2 0 01-3.46 0"
                 stroke={Colors.textDark} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-            <Circle cx={18} cy={5} r={4} fill={Colors.textDark} />
-            <Path d="M18 3v4M16 5h4" stroke="#fff" strokeWidth={1.2} strokeLinecap="round" />
         </Svg>
     );
 }
