@@ -1,20 +1,17 @@
 import { Colors } from '@/src/theme/colors';
 import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-
-// Importaciones extraídas
 import { EyeIcon } from '@/src/components/icons/EyeIcon';
 import { LockIcon } from '@/src/components/icons/LockIcon';
 import { MailIcon } from '@/src/components/icons/MailIcon';
@@ -23,7 +20,6 @@ import { InputField } from '@/src/components/ui/InputField';
 import { TopoPattern } from '@/src/components/ui/TopoPattern';
 import { useRegister } from '@/src/hooks/useRegister';
 
-// ── Pantalla Register ─────────────────────────────────────────────────────────
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -43,11 +39,11 @@ export default function RegisterScreen() {
   } = useRegister();
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+    <View style={styles.safeArea}>
+      <StatusBar style="light" translucent backgroundColor="transparent" />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
           contentContainerStyle={styles.scroll}
@@ -116,7 +112,7 @@ export default function RegisterScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 

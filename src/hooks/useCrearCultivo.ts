@@ -4,17 +4,12 @@ import { useRouter } from 'expo-router';
 import { CultivoFormData } from '@/src/utils/formSchemas';
 import { CultivoService } from '@/src/services/cultivoService';
 
-/**
- * Custom Hook que encapsula TODA la lógica de estado y negocio de la pantalla Crear Cultivo.
- * Patrón Contenedor/Presentador (Service Layer aplicado al Frontend).
- */
 export function useCrearCultivo() {
     const router = useRouter();
     const [paso, setPaso] = useState(1);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState<CultivoFormData>({
         tipoCultivo: '',
-        variedad: '',
         tipoCultivoDetalle: '',
         tamanoTerreno: '',
         cantidadSemillas: '',
@@ -24,6 +19,11 @@ export function useCrearCultivo() {
         fechaInicioCiclo: '',
         fechaFinCiclo: '',
         nombrePersonalizado: '',
+        region: '',
+        notasGenerales: '',
+        phSueloMin: '',
+        phSueloMax: '',
+        usarIA: false,
     });
 
     const titles = ['Crear cultivo', 'Datos del cultivo', 'Datos del ciclo', 'Etapas del ciclo', 'Confirmar cultivo'];
@@ -76,11 +76,12 @@ export function useCrearCultivo() {
 
         } catch (error: any) {
             console.error('Error al crear cultivo:', error);
-            const errorMsg = error.response?.data?.message || 'Error al conectar con el servidor para crear el cultivo.';
+            console.log('Detalle del error 400:', JSON.stringify(error.response?.data, null, 2));
+            const errorMsg = error.response?.data?.message || error.response?.data || 'Error al conectar con el servidor para crear el cultivo.';
             if (Platform.OS === 'web') {
                 window.alert('Error: ' + errorMsg);
             } else {
-                Alert.alert('Error', errorMsg);
+                Alert.alert('Error', typeof errorMsg === 'string' ? errorMsg : 'Errores de validación en la petición');
             }
         } finally {
             setIsSubmitting(false);

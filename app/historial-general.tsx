@@ -9,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -76,7 +77,17 @@ export default function HistorialGeneralScreen() {
             key={reporte.id}
             style={styles.reporteCard}
             activeOpacity={0.85}
-            onPress={() => router.push('/detalle-reporte')}
+            onPress={() => router.push({
+              pathname: '/detalle-reporte',
+              params: {
+                idRef: reporte.id,
+                idEvento: reporte.eventId ?? '',
+                tipo: reporte.tipo,
+                idCultivo: reporte.idCultivo,
+                fecha: reporte.fecha,
+                etapa: reporte.etapa
+              }
+            })}
           >
             {/* Ícono */}
             <View style={styles.reporteIcono}>
@@ -101,7 +112,15 @@ export default function HistorialGeneralScreen() {
 
             {/* Foto placeholder */}
             <View style={styles.reporteFoto}>
-              <ImageIcon />
+              {reporte.fotoUrl ? (
+                <Image
+                  source={{ uri: reporte.fotoUrl }}
+                  style={{ width: 60, height: 60, borderRadius: 10, backgroundColor: '#e8ede9' }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <ImageIcon />
+              )}
             </View>
           </TouchableOpacity>
         ))}

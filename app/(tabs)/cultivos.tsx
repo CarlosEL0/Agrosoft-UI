@@ -2,7 +2,6 @@ import { Colors } from '@/src/theme/colors';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
-  Dimensions,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,6 +9,7 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PlantPotIcon } from '@/src/components/icons/PlantPotIcon';
@@ -19,12 +19,13 @@ import { TreeIcon } from '@/src/components/icons/TreeIcon';
 import { TabBar } from '@/src/components/ui/TabBar';
 import { useCultivos } from '@/src/hooks/useCultivos';
 
-const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - 22 * 2 - 12) / 2;
+
 
 const filtros = ['Todos', 'Activos', 'Hechos'];
 
 export default function CultivosScreen() {
+  const { width } = useWindowDimensions();
+  const CARD_WIDTH = (width - 22 * 2 - 12) / 2;
   const router = useRouter();
   const {
     filtroActivo,
@@ -103,7 +104,7 @@ export default function CultivosScreen() {
             </View>
           ) : (
             cultivosFiltrados.map((cultivo) => (
-              <TouchableOpacity key={cultivo.id} style={styles.cultivoCard} onPress={() => router.push('/detalle-cultivo')}>
+              <TouchableOpacity key={cultivo.id} style={[styles.cultivoCard, { width: CARD_WIDTH }]} onPress={() => router.push({ pathname: '/detalle-cultivo', params: { idCultivo: cultivo.id } })}>
                 <PlantPotIcon size={56} />
                 <Text style={styles.cultivoNombre}>{cultivo.nombre}</Text>
                 <View style={styles.cultivoFooter}>
@@ -255,7 +256,6 @@ const styles = StyleSheet.create({
 
   // Card cultivo
   cultivoCard: {
-    width: CARD_WIDTH,
     backgroundColor: '#fff',
     borderRadius: 20,
     padding: 16,

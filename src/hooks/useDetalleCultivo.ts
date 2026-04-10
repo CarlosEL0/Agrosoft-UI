@@ -2,49 +2,50 @@ import { useState, useCallback } from 'react';
 import { useFocusEffect } from 'expo-router';
 import { CultivoService } from '@/src/services/cultivoService';
 
+const CULTIVO_DEFAULT = {
+    nombre: '...',
+    ciclo: 'Cargando...',
+    diaActual: 0,
+    diaTotal: 1,
+    progreso: 0,
+    salud: '...',
+    faseActual: '...',
+    riesgo: '...',
+    resumenIA: 'Consultando motor inteligente...',
+    idCiclo: null as string | null,
+    etapas: [] as any[],
+};
+
 export function useDetalleCultivo(idCultivo?: string) {
-    const [cargando, setCargando] = useState(false);
+    const [cargando, setCargando] = useState(true);
+    const [cultivo, setCultivo] = useState(CULTIVO_DEFAULT);
+    const [error, setError] = useState<string | null>(null);
 
-    // Mock data — luego vendrá de la API
-    const [cultivo, setCultivo] = useState({
-        nombre: 'Maiz',
-        ciclo: 'Ciclo floracion',
-        diaActual: 45,
-        diaTotal: 90,
-        progreso: 35,
-        salud: 'Buena',
-        faseActual: 'Germinacion',
-        riesgo: 'Bajo',
-        ia: {
-            riego: 'Óptimo',
-            nutricion: 'Adecuada',
-            plagas: 'Sin indicios',
-        },
-    });
-
-    const fetchDetalleCultivo = async () => {
+    const fetchDetalleCultivo = useCallback(async () => {
+        if (!idCultivo) return;
         try {
             setCargando(true);
-            // Cuando la API esté lista:
-            // if (idCultivo) {
-            //   const data = await CultivoService.getDetalleCultivo(idCultivo);
-            //   setCultivo(data);
-            // }
-        } catch (error) {
-            console.error('Error fetching detalle cultivo:', error);
+            setError(null);
+            const data = await CultivoService.getDetalleCultivo(idCultivo);
+            setCultivo(data);
+        } catch (err) {
+            console.error('Error fetching detalle cultivo:', err);
+            setError('No se pudo cargar el cultivo. Intenta de nuevo.');
         } finally {
             setCargando(false);
         }
-    };
+    }, [idCultivo]);
 
     useFocusEffect(
         useCallback(() => {
             fetchDetalleCultivo();
-        }, [idCultivo])
+        }, [fetchDetalleCultivo])
     );
 
     return {
         cultivo,
         cargando,
+        error,
     };
 }
+

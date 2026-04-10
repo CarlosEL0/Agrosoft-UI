@@ -27,7 +27,8 @@ export const Colors = {
   buttonSecundary: '#000000',
 
   // Estado / alertas
-  danger: '#d32f2f',
-  success: '#388e3c',
-  warning: '#f57c00',
+  danger: '#d32f2f',        // Rojo – Riesgo Alto / Salud Mala
+  success: '#4a7c59',       // Verde marca – Riesgo Bajo / Salud Buena
+  warning: '#f59e0b',       // Amarillo – Riesgo Moderado / Salud Regular
+  warningOrange: '#f57c00', // Naranja fuerte (tablas, badges)
 };

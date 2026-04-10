@@ -1,12 +1,9 @@
-// app/crear-reporte.tsx
-// Flujo de 2 pasos para crear reportes de cultivo
-// Tipos: Riego, Poda, Plagas, Crecimiento, Fertilizacion
-
 import { Colors } from '@/src/theme/colors';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Dimensions,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -16,6 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Importaciones extraídas
@@ -29,6 +27,44 @@ import { StepIndicator } from '@/src/components/ui/StepIndicator';
 import { camposPorTipo, tiposReporte } from '@/src/utils/formSchemas';
 
 const { width } = Dimensions.get('window');
+
+function formatFecha(date: Date): string {
+  const dia = String(date.getDate()).padStart(2, '0');
+  const mes = String(date.getMonth() + 1).padStart(2, '0');
+  const anio = String(date.getFullYear());
+  return `${dia}/${mes}/${anio}`;
+}
+
+function parseFecha(value: string): Date {
+  const hoy = new Date();
+  if (!value) return hoy;
+  const soloDigitos = value.replace(/\D/g, '');
+  if (soloDigitos.length >= 8) {
+    const d = parseInt(soloDigitos.slice(0, 2), 10);
+    const m = parseInt(soloDigitos.slice(2, 4), 10) - 1;
+    const y = parseInt(soloDigitos.slice(4, 8), 10);
+    const dt = new Date(y, m, d);
+    if (!isNaN(dt.getTime())) return dt;
+  }
+  const parts = value.split('/');
+  if (parts.length === 3) {
+    const d = parseInt(parts[0], 10);
+    const m = parseInt(parts[1], 10) - 1;
+    let y = parts[2];
+    if (y.length === 2) y = '20' + y;
+    const yy = parseInt(y, 10);
+    const dt = new Date(yy, m, d);
+    if (!isNaN(dt.getTime())) return dt;
+  }
+  return hoy;
+}
+
+function maskFechaInput(text: string): string {
+  const digits = text.replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
+}
 
 // ── Paso 1: Tipo de reporte ───────────────────────────────────────────────────
 
@@ -48,7 +84,11 @@ function Paso1({
   ];
 
   return (
-    <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+      contentContainerStyle={styles.pasoContent} 
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
       <View style={styles.pasoCard}>
         <Text style={styles.pasoQuestion}>Que tipo de reporte realizaras?</Text>
 
@@ -93,19 +133,44 @@ function Paso2({
   onChange,
   fotos,
   onAddFoto,
+  onRemoveFoto,
   onSubmit,
+  etapaActual,
+  isUploading,
+  uploadProgress,
 }: {
   tipo: string;
   formData: Record<string, string>;
   onChange: (key: string, value: string) => void;
-  fotos: null[];
+  fotos: string[];
   onAddFoto: () => void;
+  onRemoveFoto: (index: number) => void;
   onSubmit: () => void;
+  etapaActual: string;
+  isUploading: boolean;
+  uploadProgress: number;
 }) {
   const campos = camposPorTipo[tipo] || [];
+  const [showFechaEventoPicker, setShowFechaEventoPicker] = useState(false);
+
+  const handleChangeFechaEvento = (v: string) => {
+    onChange('fecha_evento', maskFechaInput(v));
+  };
+
+  const handlePickerFechaEventoChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    setShowFechaEventoPicker(false);
+    if (selectedDate) {
+      const formatted = formatFecha(selectedDate);
+      onChange('fecha_evento', formatted);
+    }
+  };
 
   return (
-    <ScrollView contentContainerStyle={styles.pasoContent} showsVerticalScrollIndicator={false}>
+    <ScrollView 
+      contentContainerStyle={styles.pasoContent} 
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
 
       {/* Campos del formulario */}
       <View style={styles.pasoCard}>
@@ -119,31 +184,20 @@ function Paso2({
             placeholder="DD/MM/AAAA"
             placeholderTextColor={Colors.textPlaceholder}
             value={formData['fecha_evento'] || ''}
-            onChangeText={(v) => onChange('fecha_evento', v)}
+            onChangeText={handleChangeFechaEvento}
             keyboardType="numeric"
+            onFocus={() => {
+              setShowFechaEventoPicker(true);
+            }}
           />
         </View>
 
+        {/* Etapa detectada automáticamente (solo lectura) */}
         <View style={styles.fieldGroup}>
           <Text style={styles.fieldLabel}>Etapa del cultivo</Text>
-          <View style={styles.opcionesRow}>
-            {['Germinacion', 'Plántula', 'Crecimiento', 'Floración', 'Cosecha'].map((etapa) => (
-              <TouchableOpacity
-                key={etapa}
-                style={[
-                  styles.opcionPill,
-                  formData['etapa'] === etapa && styles.opcionPillActive,
-                ]}
-                onPress={() => onChange('etapa', etapa)}
-              >
-                <Text style={[
-                  styles.opcionText,
-                  formData['etapa'] === etapa && styles.opcionTextActive,
-                ]}>
-                  {etapa}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.etapaChip}>
+            <PlantCircleIcon size={20} />
+            <Text style={styles.etapaChipText}>{etapaActual}</Text>
           </View>
         </View>
 
@@ -162,12 +216,14 @@ function Paso2({
       <View style={styles.pasoCard}>
         <Text style={styles.pasoQuestion}>Fotos del reporte</Text>
         <View style={styles.fotosGrid}>
-          {fotos.map((_, i) => (
+          {fotos.map((uri, i) => (
             <View key={i} style={styles.fotoPlaceholder}>
-              <ImageIcon />
+              <Image source={{ uri }} style={styles.fotoImagen} />
+              <TouchableOpacity style={styles.fotoBorrar} onPress={() => onRemoveFoto(i)}>
+                <Text style={styles.fotoBorrarText}>✕</Text>
+              </TouchableOpacity>
             </View>
           ))}
-          {/* Botón agregar foto */}
           <TouchableOpacity style={styles.fotoAdd} onPress={onAddFoto}>
             <PlusIcon />
             <Text style={styles.fotoAddText}>Agregar foto</Text>
@@ -175,9 +231,33 @@ function Paso2({
         </View>
       </View>
 
-      <TouchableOpacity style={styles.continueBtn} onPress={onSubmit} activeOpacity={0.85}>
-        <Text style={styles.continueBtnText}>Guardar reporte</Text>
+      {isUploading && (
+        <View style={styles.pasoCard}>
+          <Text style={styles.pasoQuestion}>Subiendo evidencias</Text>
+          <View style={styles.progressBar}>
+            <View style={[styles.progressInner, { width: `${uploadProgress}%` }]} />
+          </View>
+          <Text style={styles.progressText}>{uploadProgress}%</Text>
+        </View>
+      )}
+
+      <TouchableOpacity
+        style={[styles.continueBtn, isUploading && styles.continueBtnDisabled]}
+        onPress={onSubmit}
+        disabled={isUploading}
+        activeOpacity={0.85}
+      >
+        <Text style={styles.continueBtnText}>{isUploading ? 'Subiendo...' : 'Guardar reporte'}</Text>
       </TouchableOpacity>
+
+      {showFechaEventoPicker && Platform.OS !== 'web' && (
+        <DateTimePicker
+          value={parseFecha(formData['fecha_evento'] || '')}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handlePickerFechaEventoChange}
+        />
+      )}
 
     </ScrollView>
   );
@@ -198,13 +278,18 @@ export default function CrearReporteScreen() {
     handleBack,
     handleSubmit,
     handleAddFoto,
+    handleRemoveFoto,
+    etapaActual,
+    isUploading,
+    uploadProgress,
   } = useCrearReporte();
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
+    <View style={styles.safeArea}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
       >
         {/* ── Header ── */}
         <NavBar
@@ -233,12 +318,16 @@ export default function CrearReporteScreen() {
             onChange={handleChange}
             fotos={fotos}
             onAddFoto={handleAddFoto}
+            onRemoveFoto={handleRemoveFoto}
             onSubmit={handleSubmit}
+            etapaActual={etapaActual}
+            isUploading={isUploading}
+            uploadProgress={uploadProgress}
           />
         )}
 
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -247,7 +336,7 @@ export default function CrearReporteScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f2f4f3',
+    backgroundColor: '#ffffff',
   },
 
   // Step indicator
@@ -385,6 +474,42 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.textLight,
   },
+  fotoImagen: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
+  },
+  fotoBorrar: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fotoBorrarText: {
+    color: '#fff',
+    fontSize: 12,
+    fontFamily: 'Rubik_500Medium',
+  },
+  etapaChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: Colors.primary + '18',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    alignSelf: 'flex-start',
+  },
+  etapaChipText: {
+    fontFamily: 'Rubik_500Medium',
+    fontSize: 14,
+    color: Colors.primary,
+  },
 
   // Botón
   continueBtn: {
@@ -400,5 +525,20 @@ const styles = StyleSheet.create({
     fontFamily: 'Rubik_600SemiBold',
     fontSize: 17,
     color: '#fff',
+  },
+  progressBar: {
+    height: 10,
+    borderRadius: 8,
+    backgroundColor: '#dfe6df',
+    overflow: 'hidden',
+  },
+  progressInner: {
+    height: '100%',
+    backgroundColor: Colors.primary,
+  },
+  progressText: {
+    fontFamily: 'Rubik_500Medium',
+    fontSize: 13,
+    color: Colors.textDark,
   },
 });

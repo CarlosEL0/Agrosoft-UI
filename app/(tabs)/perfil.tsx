@@ -3,74 +3,103 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import {
     ActivityIndicator,
-    SafeAreaView,
     ScrollView,
-    StatusBar,
     StyleSheet,
     Text,
     TouchableOpacity,
-    View
+    View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePerfil } from '@/src/hooks/usePerfil';
+import { Colors } from '@/src/theme/colors';
+import { BackIcon } from '@/src/components/icons/BackIcon';
 
 export default function PerfilScreen() {
     const router = useRouter();
     const { profile, loading, handleLogout } = usePerfil();
 
+    const fullName = profile ? `${profile.nombre} ${profile.apellidos}` : '—';
+    const initials = profile
+        ? `${profile.nombre?.[0] ?? ''}${profile.apellidos?.[0] ?? ''}`.toUpperCase()
+        : '?';
+
     return (
-        <SafeAreaView style={styles.safeArea}>
-            <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
-            <ScrollView
-                contentContainerStyle={styles.scroll}
-                showsVerticalScrollIndicator={false}
-            >
-                {/* ── Header ── */}
-                <View style={styles.header}>
-                    <TouchableOpacity
-                        style={styles.backButton}
-                        onPress={() => router.back()}
-                        activeOpacity={0.8}
-                    >
-                        <Feather name="arrow-left" size={24} color="#ffffff" />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>Perfil</Text>
+        <SafeAreaView style={styles.safeArea} edges={['top']}>
+
+            {/* ── Header (mismo estilo que cultivos / inicio) ── */}
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()}>
+                    <BackIcon />
+                </TouchableOpacity>
+                <Text style={styles.headerTitle}>Mi perfil</Text>
+            </View>
+
+            <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+
+                {/* ── Avatar card (igual que activosCard en index) ── */}
+                <View style={styles.avatarCard}>
+                    <View style={styles.avatar}>
+                        {loading ? (
+                            <ActivityIndicator color="#ffffff" />
+                        ) : (
+                            <Text style={styles.avatarInitials}>{initials}</Text>
+                        )}
+                    </View>
+                    <View style={styles.avatarTexts}>
+                        <Text style={styles.avatarName}>{loading ? '…' : fullName}</Text>
+                        <Text style={styles.avatarEmail}>
+                            {loading ? '…' : (profile?.correoElectronico || '—')}
+                        </Text>
+                    </View>
                 </View>
 
-                {/* ── Main Title ── */}
-                <Text style={styles.mainTitle}>Mira tus datos</Text>
+                {/* ── Información personal ── */}
+                <Text style={styles.sectionTitle}>Información personal</Text>
 
-                {/* ── User Card ── */}
-                <View style={styles.card}>
-                    <View style={styles.avatarContainer}>
-                        <Ionicons name="person" size={50} color="#ffffff" />
+                <View style={styles.infoCard}>
+                    <View style={styles.infoRow}>
+                        <View style={styles.infoIconBox}>
+                            <Ionicons name="person-outline" size={20} color={Colors.primary} />
+                        </View>
+                        <View style={styles.infoTexts}>
+                            <Text style={styles.infoLabel}>Nombre completo</Text>
+                            <Text style={styles.infoValue}>{loading ? '…' : fullName}</Text>
+                        </View>
                     </View>
 
-                    {loading ? (
-                        <ActivityIndicator size="large" color="#1E201E" />
-                    ) : (
-                        <>
-                            <Text style={styles.label}>Usuario:</Text>
-                            <Text style={styles.value}>
-                                {profile ? `${profile.nombre} ${profile.apellidos}` : 'No disponible'}
-                            </Text>
+                    <View style={styles.divider} />
 
-                            <Text style={[styles.label, { marginTop: 16 }]}>Correo</Text>
-                            <Text style={styles.value}>
-                                {profile?.correoElectronico || 'No disponible'}
+                    <View style={styles.infoRow}>
+                        <View style={styles.infoIconBox}>
+                            <Ionicons name="mail-outline" size={20} color={Colors.primary} />
+                        </View>
+                        <View style={styles.infoTexts}>
+                            <Text style={styles.infoLabel}>Correo electrónico</Text>
+                            <Text style={styles.infoValue}>
+                                {loading ? '…' : (profile?.correoElectronico || '—')}
                             </Text>
-                        </>
-                    )}
+                        </View>
+                    </View>
                 </View>
 
-                {/* ── Logout Button ── */}
-                <TouchableOpacity
-                    style={styles.logoutButton}
-                    onPress={handleLogout}
-                    activeOpacity={0.85}
-                >
-                    <MaterialCommunityIcons name="logout" size={24} color="#ffffff" style={styles.logoutIcon} />
-                    <Text style={styles.logoutButtonText}>Cerrar sesion</Text>
-                </TouchableOpacity>
+                {/* ── Cuenta ── */}
+                <Text style={styles.sectionTitle}>Cuenta</Text>
+
+                <View style={styles.infoCard}>
+                    <View style={styles.infoRow}>
+                        <View style={[styles.infoIconBox, { backgroundColor: '#fdecea' }]}>
+                            <MaterialCommunityIcons name="logout" size={20} color="#c0392b" />
+                        </View>
+                        <TouchableOpacity style={{ flex: 1 }} onPress={handleLogout} activeOpacity={0.7}>
+                            <View style={styles.infoTexts}>
+                                <Text style={[styles.infoLabel, { color: '#c0392b' }]}>Cerrar sesión</Text>
+                                <Text style={styles.infoValue}>Salir de tu cuenta</Text>
+                            </View>
+                        </TouchableOpacity>
+                        <Feather name="chevron-right" size={20} color="#c0392b" />
+                    </View>
+                </View>
+
             </ScrollView>
         </SafeAreaView>
     );
@@ -79,87 +108,128 @@ export default function PerfilScreen() {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#ffffff',
+        backgroundColor: '#f2f4f3',
     },
-    scroll: {
-        flexGrow: 1,
-        alignItems: 'center',
-        paddingHorizontal: 24,
-        paddingTop: 20,
-        paddingBottom: 40,
-    },
+
+    // ── Header (idéntico a cultivos.tsx) ──
     header: {
         flexDirection: 'row',
         alignItems: 'center',
-        width: '100%',
-        marginBottom: 32,
+        gap: 12,
+        paddingHorizontal: 22,
+        paddingTop: 16,
+        paddingBottom: 12,
     },
-    backButton: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
-        backgroundColor: '#1E201E', // Dark roughly black circle
+    backBtn: {
+        width: 38,
+        height: 38,
+        borderRadius: 12,
+        backgroundColor: '#fff',
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 16,
     },
     headerTitle: {
-        fontFamily: 'Rubik_600SemiBold',
-        fontSize: 20,
-        color: '#1E201E',
-    },
-    mainTitle: {
-        fontFamily: 'Rubik_600SemiBold',
+        fontFamily: 'Rubik_500Medium',
         fontSize: 22,
-        color: '#000000',
-        marginBottom: 32,
+        color: Colors.textDark,
     },
-    card: {
-        width: '100%',
-        backgroundColor: '#F3F5F4',
-        borderRadius: 20,
-        paddingVertical: 32,
-        paddingHorizontal: 16,
-        alignItems: 'center',
-        marginBottom: 40,
+
+    // ── Scroll ──
+    scroll: {
+        paddingHorizontal: 22,
+        paddingBottom: 48,
+        gap: 0,
     },
-    avatarContainer: {
-        width: 90,
-        height: 90,
-        borderRadius: 45,
-        backgroundColor: '#1E201E',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginBottom: 24,
-    },
-    label: {
-        fontFamily: 'Rubik_600SemiBold',
-        fontSize: 16,
-        color: '#333333',
-        marginBottom: 4,
-        textAlign: 'center',
-    },
-    value: {
-        fontFamily: 'Rubik_600SemiBold',
-        fontSize: 16,
-        color: '#000000',
-        textAlign: 'center',
-    },
-    logoutButton: {
-        width: '100%',
-        backgroundColor: '#1F2E23', // Dark green like in the image
-        borderRadius: 16,
-        paddingVertical: 18,
+
+    // ── Avatar card (misma forma que activosCard en index) ──
+    avatarCard: {
         flexDirection: 'row',
         alignItems: 'center',
+        backgroundColor: '#e8ede9',
+        borderRadius: 20,
+        padding: 16,
+        marginBottom: 24,
+        gap: 16,
+    },
+    avatar: {
+        width: 64,
+        height: 64,
+        borderRadius: 32,
+        backgroundColor: Colors.primary,
         justifyContent: 'center',
+        alignItems: 'center',
     },
-    logoutIcon: {
-        marginRight: 10,
-    },
-    logoutButtonText: {
+    avatarInitials: {
         fontFamily: 'Rubik_600SemiBold',
-        fontSize: 18,
+        fontSize: 24,
         color: '#ffffff',
+        letterSpacing: 1,
+    },
+    avatarTexts: {
+        flex: 1,
+    },
+    avatarName: {
+        fontFamily: 'Rubik_600SemiBold',
+        fontSize: 17,
+        color: Colors.textDark,
+        marginBottom: 3,
+    },
+    avatarEmail: {
+        fontFamily: 'Rubik_400Regular',
+        fontSize: 13,
+        color: Colors.textMedium,
+    },
+
+    // ── Sección título (idéntico a cultivos.tsx) ──
+    sectionTitle: {
+        fontFamily: 'Rubik_600SemiBold',
+        fontSize: 13,
+        color: '#7a9488',
+        letterSpacing: 0.8,
+        textTransform: 'uppercase',
+        marginBottom: 10,
+        marginTop: 4,
+    },
+
+    // ── Info Card (tarjeta blanca, idéntica al resto de la app) ──
+    infoCard: {
+        backgroundColor: '#ffffff',
+        borderRadius: 20,
+        paddingHorizontal: 16,
+        marginBottom: 24,
+        overflow: 'hidden',
+    },
+    infoRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 16,
+    },
+    infoIconBox: {
+        width: 40,
+        height: 40,
+        borderRadius: 12,
+        backgroundColor: '#e8ede9',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 14,
+    },
+    infoTexts: {
+        flex: 1,
+    },
+    infoLabel: {
+        fontFamily: 'Rubik_400Regular',
+        fontSize: 12,
+        color: Colors.textLight,
+        marginBottom: 2,
+    },
+    infoValue: {
+        fontFamily: 'Rubik_500Medium',
+        fontSize: 15,
+        color: Colors.textDark,
+    },
+    divider: {
+        height: 1,
+        backgroundColor: '#f0f2f0',
+        marginLeft: 54,
     },
 });

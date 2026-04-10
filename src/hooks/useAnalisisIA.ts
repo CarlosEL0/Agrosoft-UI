@@ -1,49 +1,60 @@
 import { useState, useCallback } from 'react';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { Colors } from '@/src/theme/colors';
-
-// Mock de la respuesta de la API (AnalisisIaResponseDTO)
-export const MOCK_API_RESPONSE = {
-    resultadoAnalisis: "Basado en los registros del cultivo y las anomalías reportadas, se detectan signos claros consistentes con una infestación temprana de Mosca Blanca. El alto nivel de humedad reciente ha favorecido su rápida propagación en el envés de las hojas. El cultivo se encuentra sometido a estrés, lo cual podría impactar la próxima etapa de floración si no se toman medidas correctivas inmediatas.",
-    recomendaciones: [
-        {
-            idRecomendacion: '1',
-            titulo: 'Aplicación Tratar con Jabón Potásico',
-            descripcion: 'Preparar una solución de 20ml de jabón potásico por litro de agua. Rociar abundantemente prestando especial atención al envés de las hojas, preferiblemente al atardecer para evitar quemaduras solares.',
-            prioridad: 'alta'
-        },
-        {
-            idRecomendacion: '2',
-            titulo: 'Podas de Aclareo y Ventilación',
-            descripcion: 'Realizar una poda leve en el tercio inferior del cultivo. Esto facilitará la circulación de aire, reduciendo la humedad estancada que favorece la plaga.',
-            prioridad: 'media'
-        },
-        {
-            idRecomendacion: '3',
-            titulo: 'Trampas Cromáticas Amarillas',
-            descripcion: 'Instalar trampas adhesivas amarillas a 20cm por encima del dosel del cultivo para capturar adultos voladores e ir monitoreando la población durante las próximas 2 semanas.',
-            prioridad: 'baja'
-        }
-    ]
-};
+import { getAnalisisIA, AnalisisIaResponse } from '@/src/services/iaService';
+import { getEventosPorCultivo } from '@/src/services/reporteService';
 
 export function useAnalisisIA(idCultivo?: string | string[]) {
+    const params = useLocalSearchParams<{ idIrregularidad?: string }>();
+    const idIrregularidad = params?.idIrregularidad as string | undefined;
+
     const [loading, setLoading] = useState(true);
-    const [data, setData] = useState<typeof MOCK_API_RESPONSE | null>(null);
+    const [data, setData] = useState<{
+        resultadoAnalisis: string;
+        recomendaciones: Array<{ idRecomendacion: string; titulo: string; descripcion: string; prioridad: string }>;
+    } | null>(null);
 
     const fetchAnalisis = async () => {
         try {
             setLoading(true);
-            // Simula retraso de red (reemplazar con llamada real a API)
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            // if (idCultivo) {
-            //   const result = await IaService.getAnalisis(idCultivo);
-            //   setData(result);
-            // } else {
-            setData(MOCK_API_RESPONSE);
-            // }
+            if (idCultivo && typeof idCultivo === 'string') {
+                let extra: string | undefined = undefined;
+                try {
+                    const evRes = await getEventosPorCultivo(idCultivo);
+                    const evs = evRes.data?.data || [];
+                    const recent = evs.slice(0, 5).map((e: any) => {
+                        const fecha = (e.fechaEvento || '').split('T')[0] || '';
+                        const t = String(e.tipoEvento || '').toUpperCase();
+                        const desc = [e.descripcion, e.observaciones].filter(Boolean).join(' | ');
+                        return `- ${fecha} ${t}: ${desc}`.trim();
+                    }).filter(Boolean);
+                    if (recent.length) {
+                        extra = `Eventos recientes:\n${recent.join('\n')}`;
+                    }
+                } catch {}
+                const res: AnalisisIaResponse = await getAnalisisIA(idCultivo, idIrregularidad, extra);
+                const recomendacionesMapped = (res.recomendaciones || []).map((r) => ({
+                    idRecomendacion: String(r.idRecomendacion || ''),
+                    titulo: String(r.titulo || 'Recomendación'),
+                    descripcion: String(r.descripcion || r.mensaje || r.mensajeBase || ''),
+                    prioridad: String(r.prioridad || 'media').toLowerCase(),
+                }));
+                setData({
+                    resultadoAnalisis: String(res.resultadoAnalisis || 'La IA no devolvió análisis.'),
+                    recomendaciones: recomendacionesMapped,
+                });
+            } else {
+                setData({
+                    resultadoAnalisis: 'Selecciona un cultivo para generar el análisis.',
+                    recomendaciones: [],
+                });
+            }
         } catch (error) {
-            console.error('Error fetching IAM análisis:', error);
+            console.error('Error fetching IA análisis:', error);
+            setData({
+                resultadoAnalisis: 'No se pudo generar el análisis en este momento.',
+                recomendaciones: [],
+            });
         } finally {
             setLoading(false);
         }
@@ -52,7 +63,7 @@ export function useAnalisisIA(idCultivo?: string | string[]) {
     useFocusEffect(
         useCallback(() => {
             fetchAnalisis();
-        }, [idCultivo])
+        }, [idCultivo, idIrregularidad])
     );
 
     const getPriorityBadgeColor = (prioridad: string) => {
