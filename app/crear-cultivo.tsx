@@ -31,48 +31,12 @@ import { NavBar } from '@/src/components/ui/NavBar';
 import { StepIndicator } from '@/src/components/ui/StepIndicator';
 import { CultivoFormData, generarEtapasPreview, tiposCultivo, Etapa } from '@/src/utils/formSchemas';
 import { useCrearCultivo } from '@/src/hooks/useCrearCultivo';
+import { formatFecha, parseFecha, maskFechaInput } from '@/src/utils/dateUtils';
 
 const { width } = Dimensions.get('window');
 
 import { CultivoService } from '@/src/services/cultivoService';
 
-function formatFecha(date: Date): string {
-  const dia = String(date.getDate()).padStart(2, '0');
-  const mes = String(date.getMonth() + 1).padStart(2, '0');
-  const anio = String(date.getFullYear());
-  return `${dia}/${mes}/${anio}`;
-}
-
-function parseFecha(value: string): Date {
-  const hoy = new Date();
-  if (!value) return hoy;
-  const soloDigitos = value.replace(/\D/g, '');
-  if (soloDigitos.length >= 8) {
-    const d = parseInt(soloDigitos.slice(0, 2), 10);
-    const m = parseInt(soloDigitos.slice(2, 4), 10) - 1;
-    const y = parseInt(soloDigitos.slice(4, 8), 10);
-    const dt = new Date(y, m, d);
-    if (!isNaN(dt.getTime())) return dt;
-  }
-  const parts = value.split('/');
-  if (parts.length === 3) {
-    const d = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10) - 1;
-    let y = parts[2];
-    if (y.length === 2) y = '20' + y;
-    const yy = parseInt(y, 10);
-    const dt = new Date(yy, m, d);
-    if (!isNaN(dt.getTime())) return dt;
-  }
-  return hoy;
-}
-
-function maskFechaInput(text: string): string {
-  const digits = text.replace(/\D/g, '').slice(0, 8);
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
-}
 function filterNumeric(text: string): string {
   return text.replace(/[^0-9]/g, '');
 }
