@@ -68,8 +68,8 @@ async function resolverEtapaPorFecha(idCultivo: string, fechaISO: string): Promi
 }
 
 async function getPhotoForRef(tipo: string, idRef: string): Promise<string | null> {
-    // Las llaves deben usar '.' en lugar de ':' para ser compatibles con SecureStore en Android
-    const key = `reportPhoto.${tipo}.${idRef}`;
+    const tipoUpper = tipo.toUpperCase();
+    const key = `reportPhoto.${tipoUpper}.${idRef}`;
     if (Platform.OS === 'web') {
         return localStorage.getItem(key);
     }
@@ -108,89 +108,72 @@ export function useHistorialCultivo(idCultivoParam?: string) {
                 } else if (tipo === 'fumigacion') {
                     detalleRes = await getFumigacionPorEvento(ev.idEvento);
                     tipoUi = 'Fumigacion';
-                } else {
-                    continue;
                 }
-                const data = detalleRes.data?.data || {};
-                const idRef = data.idRiego || data.idPoda || data.idFertilizacion || data.idFumigacion;
-                const fotoUrl = idRef ? await getPhotoForRef(tipoUi.toUpperCase(), idRef) : null;
-                let etapaNombre = 'N/A';
-                if (ev.idEtapa) {
-                    try {
-                        const etapaRes = await getEtapaPorId(ev.idEtapa);
-                        const etapa = etapaRes.data?.data || {};
-                        etapaNombre = etapa.nombreEtapa || etapa.nombre || etapa.etapa || 'N/A';
-                    } catch {}
-                } else if (ev.fechaEvento) {
-                    etapaNombre = await resolverEtapaPorFecha(cultivoId, ev.fechaEvento.split('T')[0]);
+
+                if (detalleRes?.data?.data) {
+                    const d = detalleRes.data.data;
+                    const idRef = d.idRiego || d.idPoda || d.idFertilizacion || d.idFumigacion;
+                    const foto = await getPhotoForRef(tipoUi, String(idRef));
+                    const etapa = await resolverEtapaPorFecha(cultivoId, ev.fechaEvento);
+                    resultado.push({
+                        id: `${tipoUi}-${idRef}`, // ID único
+                        eventId: ev.idEvento,
+                        tipo: tipoUi,
+                        fecha: formatFechaISOToDDMMYY(ev.fechaEvento),
+                        etapa,
+                        fotoUrl: foto || undefined,
+                        descripcion: d.descripcion || d.observaciones,
+                        observaciones: d.observaciones
+                    });
                 }
-                resultado.push({
-                    id: idRef || ev.idEvento,
-                    eventId: ev.idEvento,
-                    tipo: tipoUi,
-                    etapa: etapaNombre,
-                    fecha: formatFechaISOToDDMMYY(ev.fechaEvento),
-                    fotoUrl: fotoUrl || undefined,
-                    descripcion: ev.descripcion || '',
-                    observaciones: ev.observaciones || '',
-                });
             }
 
+            // Irregularidades
             const irrRes = await getIrregularidadesPorCultivo(cultivoId);
-            const irregularidades = irrRes.data?.data || [];
-            for (const irr of irregularidades) {
-                const fotoUrl = irr.id ? await getPhotoForRef('IRREGULARIDAD', irr.id) : null;
-                let etapaNombre = 'N/A';
-                if (irr.idEtapa) {
-                    try {
-                        const etapaRes = await getEtapaPorId(irr.idEtapa);
-                        const etapa = etapaRes.data?.data || {};
-                        etapaNombre = etapa.nombreEtapa || etapa.nombre || etapa.etapa || 'N/A';
-                    } catch {}
-                } else if (irr.fechaDeteccion) {
-                    etapaNombre = await resolverEtapaPorFecha(cultivoId, irr.fechaDeteccion.split('T')[0]);
-                }
+            const irrs = irrRes.data?.data || [];
+            for (const irr of irrs) {
+                const idIrr = irr.idIrregularidad;
+                const foto = await getPhotoForRef('Irregularidad', String(idIrr));
+                const etapa = await resolverEtapaPorFecha(cultivoId, irr.fechaDeteccion);
                 resultado.push({
-                    id: irr.id,
-                    eventId: null,
+                    id: `Irr-${idIrr}`, // ID único
                     tipo: 'Irregularidad',
-                    etapa: etapaNombre,
                     fecha: formatFechaISOToDDMMYY(irr.fechaDeteccion),
-                    fotoUrl: fotoUrl || undefined,
-                    descripcion: irr.descripcion || '',
-                    observaciones: irr.comentarioAgricultor || '',
+                    etapa,
+                    fotoUrl: foto || undefined,
+                    descripcion: irr.descripcion,
+                    observaciones: irr.observaciones
                 });
             }
 
-            const crecRes = await getCrecimientoPorCultivo(cultivoId);
-            const crecimientos = crecRes.data?.data || [];
-            for (const reg of crecimientos) {
-                const fotoUrl = reg.id ? await getPhotoForRef('CRECIMIENTO', reg.id) : null;
-                let etapaNombre = 'N/A';
-                if (reg.idEtapa) {
-                    try {
-                        const etapaRes = await getEtapaPorId(reg.idEtapa);
-                        const etapa = etapaRes.data?.data || {};
-                        etapaNombre = etapa.nombreEtapa || etapa.nombre || etapa.etapa || 'N/A';
-                    } catch {}
-                } else if (reg.fechaRegistro) {
-                    etapaNombre = await resolverEtapaPorFecha(cultivoId, reg.fechaRegistro);
-                }
+            // Crecimiento
+            const creRes = await getCrecimientoPorCultivo(cultivoId);
+            const cres = creRes.data?.data || [];
+            for (const cre of cres) {
+                const idCre = cre.idCrecimiento;
+                const foto = await getPhotoForRef('Crecimiento', String(idCre));
+                const etapa = await resolverEtapaPorFecha(cultivoId, cre.fechaRegistro);
                 resultado.push({
-                    id: reg.id,
-                    eventId: null,
+                    id: `Cre-${idCre}`, // ID único
                     tipo: 'Crecimiento',
-                    etapa: etapaNombre,
-                    fecha: formatFechaISOToDDMMYY(reg.fechaRegistro),
-                    fotoUrl: fotoUrl || undefined,
-                    descripcion: reg.observaciones || '',
-                    observaciones: '',
+                    fecha: formatFechaISOToDDMMYY(cre.fechaRegistro),
+                    etapa,
+                    fotoUrl: foto || undefined,
+                    descripcion: cre.notas,
+                    observaciones: cre.notas
                 });
             }
+
+            // Ordenar por fecha desc
+            resultado.sort((a, b) => {
+                const da = a.fecha.split('/').reverse().join('');
+                const db = b.fecha.split('/').reverse().join('');
+                return db.localeCompare(da);
+            });
 
             setReportes(resultado);
         } catch (error) {
-            console.error('Error fetching historial de reportes:', error);
+            console.error('Error fetching historial cultivo:', error);
         } finally {
             setCargando(false);
         }
@@ -203,10 +186,8 @@ export function useHistorialCultivo(idCultivoParam?: string) {
     );
 
     const reportesFiltrados = useMemo(() => {
-        return reportes.filter((r) => {
-            if (filtroActivo === 'Todos') return true;
-            return r.tipo.toLowerCase().includes(filtroActivo.toLowerCase());
-        });
+        if (filtroActivo === 'Todos') return reportes;
+        return reportes.filter((r) => r.tipo === filtroActivo);
     }, [reportes, filtroActivo]);
 
     return {
@@ -215,5 +196,6 @@ export function useHistorialCultivo(idCultivoParam?: string) {
         setFiltroActivo,
         reportesFiltrados,
         cargando,
+        refresh: fetchReportes
     };
 }
