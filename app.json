@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "agrosoft-mobile",
+    "name": "Agrosoft",
     "slug": "agrosoft-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -12,6 +12,7 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.agrosoft.agrosoftmobile",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -44,6 +45,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ed22c91d-0f3d-4451-a570-987ffd0d0dd8"
+      }
     }
   }
 }
