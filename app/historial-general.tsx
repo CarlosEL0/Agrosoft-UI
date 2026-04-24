@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
   Image,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -27,7 +28,7 @@ import { useHistorialGeneral } from '@/src/hooks/useHistorialGeneral';
 
 export default function HistorialGeneralScreen() {
   const router = useRouter();
-  const { filtros, filtroActivo, setFiltroActivo, reportesFiltrados } = useHistorialGeneral();
+  const { filtros, filtroActivo, setFiltroActivo, reportesFiltrados, cargando } = useHistorialGeneral();
 
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>
@@ -67,64 +68,78 @@ export default function HistorialGeneralScreen() {
       </ScrollView>
 
       {/* ── Lista ── */}
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {reportesFiltrados.map((reporte) => (
-          <TouchableOpacity
-            key={reporte.id}
-            style={styles.reporteCard}
-            activeOpacity={0.85}
-            onPress={() => router.push({
-              pathname: '/detalle-reporte',
-              params: {
-                idRef: reporte.id,
-                idEvento: reporte.eventId ?? '',
-                tipo: reporte.tipo,
-                idCultivo: reporte.idCultivo,
-                fecha: reporte.fecha,
-                etapa: reporte.etapa
-              }
-            })}
+      <View style={{ flex: 1 }}>
+        {cargando ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={Colors.primary} />
+            <Text style={styles.loadingText}>Cargando historial...</Text>
+          </View>
+        ) : (
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
           >
-            {/* Ícono */}
-            <View style={styles.reporteIcono}>
-              <PlantCircleIcon size={50} />
-            </View>
-
-            {/* Info */}
-            <View style={styles.reporteInfo}>
-              {/* Nombre del cultivo — diferencia vs historial individual */}
-              <View style={styles.cultivoTag}>
-                <Text style={styles.cultivoTagText}>{reporte.cultivo}</Text>
+            {reportesFiltrados.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No se encontraron reportes</Text>
               </View>
-              <Text style={styles.reporteTipo}>Tipo: {reporte.tipo}</Text>
-              <View style={styles.reporteFechaRow}>
-                <Text style={styles.reporteFechaLabel}>Fecha</Text>
-                <View style={styles.reporteFechaBox}>
-                  <Text style={styles.reporteFechaText}>{reporte.fecha}</Text>
-                </View>
-              </View>
-              <Text style={styles.reporteEtapa}>Etapa: {reporte.etapa}</Text>
-            </View>
+            ) : (
+              reportesFiltrados.map((reporte) => (
+                <TouchableOpacity
+                  key={reporte.id}
+                  style={styles.reporteCard}
+                  activeOpacity={0.85}
+                  onPress={() => router.push({
+                    pathname: '/detalle-reporte',
+                    params: {
+                      idRef: reporte.id,
+                      idEvento: reporte.eventId ?? '',
+                      tipo: reporte.tipo,
+                      idCultivo: reporte.idCultivo,
+                      fecha: reporte.fecha,
+                      etapa: reporte.etapa
+                    }
+                  })}
+                >
+                  {/* Ícono */}
+                  <View style={styles.reporteIcono}>
+                    <PlantCircleIcon size={50} />
+                  </View>
 
-            {/* Foto placeholder */}
-            <View style={styles.reporteFoto}>
-              {reporte.fotoUrl ? (
-                <Image
-                  source={{ uri: reporte.fotoUrl }}
-                  style={{ width: 60, height: 60, borderRadius: 10, backgroundColor: '#e8ede9' }}
-                  resizeMode="cover"
-                />
-              ) : (
-                <ImageIcon />
-              )}
-            </View>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+                  {/* Info */}
+                  <View style={styles.reporteInfo}>
+                    <View style={styles.cultivoTag}>
+                      <Text style={styles.cultivoTagText}>{reporte.cultivo}</Text>
+                    </View>
+                    <Text style={styles.reporteTipo}>Tipo: {reporte.tipo}</Text>
+                    <View style={styles.reporteFechaRow}>
+                      <Text style={styles.reporteFechaLabel}>Fecha</Text>
+                      <View style={styles.reporteFechaBox}>
+                        <Text style={styles.reporteFechaText}>{reporte.fecha}</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.reporteEtapa}>Etapa: {reporte.etapa}</Text>
+                  </View>
+
+                  {/* Foto placeholder */}
+                  <View style={styles.reporteFoto}>
+                    {reporte.fotoUrl ? (
+                      <Image
+                        source={{ uri: reporte.fotoUrl }}
+                        style={{ width: 60, height: 60, borderRadius: 10, backgroundColor: '#e8ede9' }}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <ImageIcon />
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))
+            )}
+          </ScrollView>
+        )}
+      </View>
 
       {/* ── Tab Bar ── */}
       <TabBar activeTab="cultivos" />
@@ -198,6 +213,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 22,
     gap: 12,
     paddingBottom: 24,
+  },
+
+  // Loading & Empty
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 12,
+    paddingBottom: 100,
+  },
+  loadingText: {
+    fontFamily: 'Rubik_400Regular',
+    fontSize: 14,
+    color: Colors.textMedium,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 60,
+  },
+  emptyText: {
+    fontFamily: 'Rubik_400Regular',
+    fontSize: 15,
+    color: Colors.textLight,
   },
 
   // Card reporte

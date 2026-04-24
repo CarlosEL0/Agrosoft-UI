@@ -17,253 +17,15 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Importaciones extraídas
-import { ImageIcon } from '@/src/components/icons/ImageIcon';
-import { PlantCircleIcon } from '@/src/components/icons/PlantCircleIcon';
-import { PlusIcon } from '@/src/components/icons/PlusIcon';
-import { Campo } from '@/src/components/ui/Campo';
 import { NavBar } from '@/src/components/ui/NavBar';
 import { useCrearReporte } from '@/src/hooks/useCrearReporte';
 import { StepIndicator } from '@/src/components/ui/StepIndicator';
-import { camposPorTipo, tiposReporte } from '@/src/utils/formSchemas';
+
+// Sub-componentes de pasos
+import { Paso1 } from '@/src/components/crear-reporte/Paso1';
+import { Paso2 } from '@/src/components/crear-reporte/Paso2';
 
 const { width } = Dimensions.get('window');
-
-function formatFecha(date: Date): string {
-  const dia = String(date.getDate()).padStart(2, '0');
-  const mes = String(date.getMonth() + 1).padStart(2, '0');
-  const anio = String(date.getFullYear());
-  return `${dia}/${mes}/${anio}`;
-}
-
-function parseFecha(value: string): Date {
-  const hoy = new Date();
-  if (!value) return hoy;
-  const soloDigitos = value.replace(/\D/g, '');
-  if (soloDigitos.length >= 8) {
-    const d = parseInt(soloDigitos.slice(0, 2), 10);
-    const m = parseInt(soloDigitos.slice(2, 4), 10) - 1;
-    const y = parseInt(soloDigitos.slice(4, 8), 10);
-    const dt = new Date(y, m, d);
-    if (!isNaN(dt.getTime())) return dt;
-  }
-  const parts = value.split('/');
-  if (parts.length === 3) {
-    const d = parseInt(parts[0], 10);
-    const m = parseInt(parts[1], 10) - 1;
-    let y = parts[2];
-    if (y.length === 2) y = '20' + y;
-    const yy = parseInt(y, 10);
-    const dt = new Date(yy, m, d);
-    if (!isNaN(dt.getTime())) return dt;
-  }
-  return hoy;
-}
-
-function maskFechaInput(text: string): string {
-  const digits = text.replace(/\D/g, '').slice(0, 8);
-  if (digits.length <= 2) return digits;
-  if (digits.length <= 4) return `${digits.slice(0, 2)}/${digits.slice(2)}`;
-  return `${digits.slice(0, 2)}/${digits.slice(2, 4)}/${digits.slice(4)}`;
-}
-
-// ── Paso 1: Tipo de reporte ───────────────────────────────────────────────────
-
-function Paso1({
-  tipoSeleccionado,
-  onSelect,
-  onNext,
-}: {
-  tipoSeleccionado: string;
-  onSelect: (tipo: string) => void;
-  onNext: () => void;
-}) {
-  const filas = [
-    tiposReporte.slice(0, 2),
-    tiposReporte.slice(2, 4),
-    tiposReporte.slice(4),
-  ];
-
-  return (
-    <ScrollView 
-      contentContainerStyle={styles.pasoContent} 
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-    >
-      <View style={styles.pasoCard}>
-        <Text style={styles.pasoQuestion}>Que tipo de reporte realizaras?</Text>
-
-        {filas.map((fila, fi) => (
-          <View key={fi} style={styles.tiposRow}>
-            {fila.map((tipo) => (
-              <TouchableOpacity
-                key={tipo}
-                style={[
-                  styles.tipoOption,
-                  fila.length === 1 && styles.tipoOptionSolo,
-                  tipoSeleccionado === tipo && styles.tipoOptionActive,
-                ]}
-                onPress={() => onSelect(tipo)}
-                activeOpacity={0.8}
-              >
-                <PlantCircleIcon size={56} />
-                <Text style={styles.tipoOptionText}>{tipo}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        ))}
-      </View>
-
-      <TouchableOpacity
-        style={[styles.continueBtn, !tipoSeleccionado && styles.continueBtnDisabled]}
-        onPress={onNext}
-        disabled={!tipoSeleccionado}
-        activeOpacity={0.85}
-      >
-        <Text style={styles.continueBtnText}>Continuar &gt;</Text>
-      </TouchableOpacity>
-    </ScrollView>
-  );
-}
-
-// ── Paso 2: Formulario + Fotos ────────────────────────────────────────────────
-
-function Paso2({
-  tipo,
-  formData,
-  onChange,
-  fotos,
-  onAddFoto,
-  onRemoveFoto,
-  onSubmit,
-  etapaActual,
-  isUploading,
-  uploadProgress,
-}: {
-  tipo: string;
-  formData: Record<string, string>;
-  onChange: (key: string, value: string) => void;
-  fotos: string[];
-  onAddFoto: () => void;
-  onRemoveFoto: (index: number) => void;
-  onSubmit: () => void;
-  etapaActual: string;
-  isUploading: boolean;
-  uploadProgress: number;
-}) {
-  const campos = camposPorTipo[tipo] || [];
-  const [showFechaEventoPicker, setShowFechaEventoPicker] = useState(false);
-
-  const handleChangeFechaEvento = (v: string) => {
-    onChange('fecha_evento', maskFechaInput(v));
-  };
-
-  const handlePickerFechaEventoChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    setShowFechaEventoPicker(false);
-    if (selectedDate) {
-      const formatted = formatFecha(selectedDate);
-      onChange('fecha_evento', formatted);
-    }
-  };
-
-  return (
-    <ScrollView 
-      contentContainerStyle={styles.pasoContent} 
-      showsVerticalScrollIndicator={false}
-      keyboardShouldPersistTaps="handled"
-    >
-
-      {/* Campos del formulario */}
-      <View style={styles.pasoCard}>
-        <Text style={styles.pasoQuestion}>Reporte de {tipo.toLowerCase()}</Text>
-
-        {/* Campos comunes del evento */}
-        <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>Fecha del evento</Text>
-          <TextInput
-            style={styles.textInput}
-            placeholder="DD/MM/AAAA"
-            placeholderTextColor={Colors.textPlaceholder}
-            value={formData['fecha_evento'] || ''}
-            onChangeText={handleChangeFechaEvento}
-            keyboardType="numeric"
-            onFocus={() => {
-              setShowFechaEventoPicker(true);
-            }}
-          />
-        </View>
-
-        {/* Etapa detectada automáticamente (solo lectura) */}
-        <View style={styles.fieldGroup}>
-          <Text style={styles.fieldLabel}>Etapa del cultivo</Text>
-          <View style={styles.etapaChip}>
-            <PlantCircleIcon size={20} />
-            <Text style={styles.etapaChipText}>{etapaActual}</Text>
-          </View>
-        </View>
-
-        {/* Campos específicos del tipo */}
-        {campos.map((campo) => (
-          <Campo
-            key={campo.key}
-            campo={campo}
-            value={formData[campo.key] || ''}
-            onChange={(v) => onChange(campo.key, v)}
-          />
-        ))}
-      </View>
-
-      {/* Fotos del reporte */}
-      <View style={styles.pasoCard}>
-        <Text style={styles.pasoQuestion}>Fotos del reporte</Text>
-        <View style={styles.fotosGrid}>
-          {fotos.map((uri, i) => (
-            <View key={i} style={styles.fotoPlaceholder}>
-              <Image source={{ uri }} style={styles.fotoImagen} />
-              <TouchableOpacity style={styles.fotoBorrar} onPress={() => onRemoveFoto(i)}>
-                <Text style={styles.fotoBorrarText}>✕</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
-          <TouchableOpacity style={styles.fotoAdd} onPress={onAddFoto}>
-            <PlusIcon />
-            <Text style={styles.fotoAddText}>Agregar foto</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {isUploading && (
-        <View style={styles.pasoCard}>
-          <Text style={styles.pasoQuestion}>Subiendo evidencias</Text>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressInner, { width: `${uploadProgress}%` }]} />
-          </View>
-          <Text style={styles.progressText}>{uploadProgress}%</Text>
-        </View>
-      )}
-
-      <TouchableOpacity
-        style={[styles.continueBtn, isUploading && styles.continueBtnDisabled]}
-        onPress={onSubmit}
-        disabled={isUploading}
-        activeOpacity={0.85}
-      >
-        <Text style={styles.continueBtnText}>{isUploading ? 'Subiendo...' : 'Guardar reporte'}</Text>
-      </TouchableOpacity>
-
-      {showFechaEventoPicker && Platform.OS !== 'web' && (
-        <DateTimePicker
-          value={parseFecha(formData['fecha_evento'] || '')}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handlePickerFechaEventoChange}
-        />
-      )}
-
-    </ScrollView>
-  );
-}
-
-// ── Pantalla principal ────────────────────────────────────────────────────────
 
 export default function CrearReporteScreen() {
   const {
@@ -308,6 +70,7 @@ export default function CrearReporteScreen() {
             tipoSeleccionado={tipoReporte}
             onSelect={setTipoReporte}
             onNext={() => setPaso(2)}
+            styles={styles}
           />
         )}
 
@@ -323,6 +86,7 @@ export default function CrearReporteScreen() {
             etapaActual={etapaActual}
             isUploading={isUploading}
             uploadProgress={uploadProgress}
+            styles={styles}
           />
         )}
 

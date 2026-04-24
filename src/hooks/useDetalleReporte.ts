@@ -191,7 +191,12 @@ export function useDetalleReporte() {
             } else if (t === 'Irregularidad' && idCultivo) {
                 const irrRes = await getIrregularidadesPorCultivo(idCultivo as string);
                 const lista = irrRes.data?.data || [];
-                const data = lista.find((x: any) => String(x.id) === String(id)) || {};
+                // Intentar buscar por id o idIrregularidad
+                const data = lista.find((x: any) => 
+                    (x.id && String(x.id) === String(id)) || 
+                    (x.idIrregularidad && String(x.idIrregularidad) === String(id))
+                ) || {};
+                
                 detalles = [
                     { label: 'Tipo', value: String(data.tipoIrregularidad ?? 'N/D') },
                     { label: 'Plaga', value: String(data.nombrePlaga ?? 'N/D') },
@@ -200,6 +205,9 @@ export function useDetalleReporte() {
                     { label: 'Estado', value: String(data.estado ?? 'N/D') },
                     { label: 'Descripción', value: String(data.descripcion ?? 'N/D') },
                 ];
+                if (data.comentarioAgricultor) {
+                    detalles.push({ label: 'Comentario', value: String(data.comentarioAgricultor) });
+                }
                 fecha = formato(data.fechaDeteccion);
                 if (data.idEtapa) {
                     const etapaRes = await api.get(`/etapas/${data.idEtapa}`);
@@ -209,9 +217,14 @@ export function useDetalleReporte() {
                     etapaTexto = await resolverEtapaPorFecha(idCultivo as string, String(data.fechaDeteccion));
                 }
             } else if (t === 'Crecimiento' && idCultivo) {
-                const crecRes = await getCrecimientoPorCultivo(idCultivo as string);
-                const lista = crecRes.data?.data || [];
-                const data = lista.find((x: any) => String(x.id) === String(id)) || {};
+                const creRes = await getCrecimientoPorCultivo(idCultivo as string);
+                const lista = creRes.data?.data || [];
+                // Intentar buscar por id o idCrecimiento
+                const data = lista.find((x: any) => 
+                    (x.id && String(x.id) === String(id)) || 
+                    (x.idCrecimiento && String(x.idCrecimiento) === String(id))
+                ) || {};
+                
                 detalles = [
                     { label: 'Altura (cm)', value: String(data.alturaPlanta ?? 'N/D') },
                     { label: 'Grosor tallo (cm)', value: String(data.grosorTallo ?? 'N/D') },
