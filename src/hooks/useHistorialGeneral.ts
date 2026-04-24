@@ -140,7 +140,7 @@ export function useHistorialGeneral() {
                                 const foto = await getPhotoForRef(tipoUi, String(idRef));
                                 const etapa = await resolverEtapaPorFecha(idCultivo, ev.fechaEvento);
                                 res.push({
-                                    id: `${tipoUi}-${idRef}`, // ID único combinando tipo e idRef
+                                    id: String(idRef), // Usar solo el idRef para que el hook detalle lo encuentre
                                     eventId: ev.idEvento,
                                     cultivo: nombreCultivo,
                                     idCultivo: idCultivo,
@@ -166,7 +166,7 @@ export function useHistorialGeneral() {
                         const foto = await getPhotoForRef('Irregularidad', String(idIrr));
                         const etapa = await resolverEtapaPorFecha(idCultivo, irr.fechaDeteccion);
                         res.push({
-                            id: `Irr-${idIrr}`, // ID único
+                            id: String(idIrr), // Usar solo el ID para que coincida con lo que espera el detalle
                             cultivo: nombreCultivo,
                             idCultivo: idCultivo,
                             tipo: 'Irregularidad',
@@ -190,7 +190,7 @@ export function useHistorialGeneral() {
                         const foto = await getPhotoForRef('Crecimiento', String(idCre));
                         const etapa = await resolverEtapaPorFecha(idCultivo, cre.fechaRegistro);
                         res.push({
-                            id: `Cre-${idCre}`, // ID único
+                            id: String(idCre), // Usar solo el ID
                             cultivo: nombreCultivo,
                             idCultivo: idCultivo,
                             tipo: 'Crecimiento',

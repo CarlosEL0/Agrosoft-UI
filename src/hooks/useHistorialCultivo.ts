@@ -132,11 +132,11 @@ export function useHistorialCultivo(idCultivoParam?: string) {
             const irrRes = await getIrregularidadesPorCultivo(cultivoId);
             const irrs = irrRes.data?.data || [];
             for (const irr of irrs) {
-                const idIrr = irr.idIrregularidad;
+                const idIrr = irr.id || irr.idIrregularidad;
                 const foto = await getPhotoForRef('Irregularidad', String(idIrr));
                 const etapa = await resolverEtapaPorFecha(cultivoId, irr.fechaDeteccion);
                 resultado.push({
-                    id: `Irr-${idIrr}`, // ID único
+                    id: String(idIrr), // Usar solo el ID para que coincida con el detalle
                     tipo: 'Irregularidad',
                     fecha: formatFechaISOToDDMMYY(irr.fechaDeteccion),
                     etapa,
@@ -150,17 +150,17 @@ export function useHistorialCultivo(idCultivoParam?: string) {
             const creRes = await getCrecimientoPorCultivo(cultivoId);
             const cres = creRes.data?.data || [];
             for (const cre of cres) {
-                const idCre = cre.idCrecimiento;
+                const idCre = cre.id || cre.idCrecimiento;
                 const foto = await getPhotoForRef('Crecimiento', String(idCre));
                 const etapa = await resolverEtapaPorFecha(cultivoId, cre.fechaRegistro);
                 resultado.push({
-                    id: `Cre-${idCre}`, // ID único
+                    id: String(idCre), // Usar solo el ID
                     tipo: 'Crecimiento',
                     fecha: formatFechaISOToDDMMYY(cre.fechaRegistro),
                     etapa,
                     fotoUrl: foto || undefined,
-                    descripcion: cre.notas,
-                    observaciones: cre.notas
+                    descripcion: cre.notas || cre.observaciones,
+                    observaciones: cre.observaciones
                 });
             }
 

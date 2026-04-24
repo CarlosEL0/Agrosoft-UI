@@ -11,7 +11,6 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BackIcon } from '@/src/components/icons/BackIcon';
 import { CalendarIcon } from '@/src/components/icons/CalendarIcon';
 import { PlantCircleIcon } from '@/src/components/icons/PlantCircleIcon';
 import { NavBar } from '@/src/components/ui/NavBar';
